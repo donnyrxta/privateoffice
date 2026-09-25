@@ -13,7 +13,10 @@
     "deploy:cloudflare": "npm run build:cloudflare && npm run deploy:built",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern native",
     "db:generate": "drizzle-kit generate",
-    "test:api": "node tests/api.test.mjs"
+    "test:api": "node tests/api.test.mjs",
+    "build:test": "PRIVATE_OFFICE_ALLOW_MISSING_D1=1 node scripts/build-cloudflare.mjs",
+    "verify:production": "node scripts/verify-production.mjs",
+    "office:secret": "node scripts/office-setup-secret.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

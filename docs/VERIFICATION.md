@@ -21,15 +21,26 @@ This pass changes the tracking model from direct single-point HTTP delivery to d
 - idempotent terminal retry;
 - epoch restart;
 - arrival and client confirmation;
-- recent office security-activity projection.
+- recent office security-activity projection;
+- readiness endpoint: DB missing (503), unmigrated (503), migrated/ready (200), Access config missing in standalone;
+- contiguous terminal gate: 0,1,3 cannot close at 3; closing below persisted MAX is FINAL_SEQUENCE_MISMATCH;
+- persisted rejection records account for sequences and replay idempotently;
+- in-batch duplicate sequences are rejected without failing the batch;
+- SEQUENCE_GAP → degraded health with exact missing ranges (office only, not client);
+- integrity flags: simulated_location, timestamp_anomaly;
+- Cron watchdog marks a silent visit interrupted and audits the transition; daily retention cron deletes per policy;
+- evidence export (owner-only, contiguity proof, raw rejections, digest, no capability token);
+- access matrix: other agent 403, other visit's / wrong / expired / revoked client token denied, revoked visit rejects telemetry.
+
+103 assertions pass locally (`npm run build:test && npm run test:api`).
 
 ## Schema verification
 
-Both SQL migrations have been applied in sequence against a clean SQLite database during this implementation pass. The resulting schema includes `devices`, `agent_sessions`, `security_events`, enriched `points`, and visit tracking-health/device/sequence fields.
+All three SQL migrations have been applied in sequence against a clean SQLite database during this implementation pass. The resulting schema includes `devices`, `agent_sessions`, `security_events`, enriched `points`, and visit tracking-health/device/sequence fields.
 
-## Build limitation in this execution environment
+## Build and type checks
 
-The working container does not have the project dependencies installed and cannot reach the npm registry, so a fresh Vinext dependency installation/build cannot be executed here. TypeScript parsing was checked with the available compiler until missing external type definitions became the blocking errors. Cloudflare Workers Builds will perform the real dependency installation from the committed package manifest.
+Dependencies install and the Vinext Cloudflare build completes. `npx tsc --noEmit` reports no errors. The pinned local workerd only supports compatibility dates up to 2026-05-22, so the contract test clamps the date for local runs only; the deployed Worker still targets 2026-09-25.
 
 ## Required field test
 

@@ -17,7 +17,11 @@ The web prototype uses IndexedDB for the durable outbox. The native/ directory c
 - The device deletes only IDs returned in processed_ids.
 - Exact retries are ACKed again; changed payloads reusing an observation ID are rejected.
 - Reusing an epoch sequence number with another UUID is rejected.
-- Terminal actions stop acquisition locally, then wait for the declared final sequence to reach D1 before the server changes visit state.
+- Terminal actions stop acquisition locally, then the server refuses to close the epoch until every sequence 0..final_sequence is accounted for (COUNT = final+1, MIN = 0, MAX = final). A gap such as 0,1,3 returns TELEMETRY_PENDING with the exact missing sequence numbers.
+- Server-rejected fixes (bad timestamps, out-of-range values) are persisted in observation_rejections with the raw payload and reason, so they never silently disappear and never deadlock the close.
+- Suspicious fixes are stored with server-derived integrity_flags (simulated_location, implausible_speed, timestamp_anomaly), not dropped.
+- Health is evaluated server-side (healthy / delayed / degraded / stale / interrupted). Sequence gaps show the office "TRACKING DEGRADED · N observations missing".
+- A Cron Trigger watchdog re-evaluates every sharing visit each minute and writes health transitions to the audit trail. A daily cron (03:00 Harare) applies retention.
 - Client views show only the latest server-persisted position while tracking is active, with age, reported accuracy and quality.
 - Office views retain the richer route, security/lifecycle events, sequence continuity and anomaly flags.
 
@@ -33,16 +37,27 @@ For the Git-connected Worker use:
 
 build:cloudflare forces the standalone Cloudflare profile and builds Vinext. deploy:built then locates the generated Wrangler config under dist/ and deploys that exact Worker output.
 
-### D1
+### D1 (required: the build fails without it)
 
 Create a D1 database named private-office-d1 and expose its database ID as a build variable:
 
     CLOUDFLARE_D1_DATABASE_ID=<database id>
 
+build:cloudflare terminates with "CLOUDFLARE_D1_DATABASE_ID is required for production deployment." if it is missing or not a UUID. deploy:built independently refuses any generated config that lacks the DB binding or the Cron Triggers.
+
 Apply the schema in order:
 
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0000_huge_blizzard.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0001_durable_telemetry.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
+
+### Readiness
+
+GET /api/health returns 200 (ready or degraded) or 503 (not_ready). It checks the DB binding, a live D1 query, all required tables and enriched telemetry columns, schema version 0002_production_readiness, the Cloudflare Access runtime config (standalone builds), office bootstrap state, and the watchdog/retention scheduler heartbeats. It returns no visit, client or agent data.
+
+### Go-live
+
+See docs/GO_LIVE.md for the gate-by-gate status, the operator runbook, npm run office:secret and npm run verify:production.
 
 ### Runtime bindings / secrets
 
@@ -63,12 +78,12 @@ Production build:
 
     npm run build:cloudflare
 
-API contract tests run against the built Worker and an isolated Miniflare D1 database:
+API contract tests run against the built Worker and an isolated Miniflare D1 database. build:test is the only build allowed without a D1 ID (its output cannot be deployed):
 
-    npm run build:cloudflare
+    npm run build:test
     npm run test:api
 
-The tests cover device-key enrollment, signed security-event batches, signed observation batches, strict ACKs, duplicate replay, observation-ID conflicts, sequence collisions, terminal sequence gating, client scoping and office evidence access.
+The tests cover readiness (no DB, unmigrated, migrated), device-key enrollment, signed batches, strict ACKs, duplicate replay, ID and sequence conflicts, in-batch duplicates, contiguous terminal gating (gaps, FINAL_SEQUENCE_MISMATCH), persisted rejections, integrity flags, SEQUENCE_GAP health, the cron watchdog and retention, the evidence export, and the app-level access matrix (wrong agent, wrong/other/expired/revoked client token).
 
 ## Native prototype
 
@@ -89,4 +104,4 @@ The connected Canva library was inspected and the original Private Office source
 
 ## Verification
 
-See docs/VERIFICATION.md and docs/OPERATIONS.md. SQL migrations were replayed successfully against a clean local SQLite database. Full dependency installation/Vinext build could not be executed in the working container because its npm registry access was unavailable; the Cloudflare build is the next end-to-end verification step.
+See docs/VERIFICATION.md, docs/OPERATIONS.md and docs/GO_LIVE.md.

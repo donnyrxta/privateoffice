@@ -16,12 +16,15 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 ## First deployment
 
 1. Create D1 database `private-office-d1`.
-2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID.
-3. Apply `drizzle/0000_huge_blizzard.sql`, then `drizzle/0001_durable_telemetry.sql` to the remote database.
-4. Configure `OFFICE_SETUP_HASH` as a runtime secret.
+2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID. Without it the build fails.
+3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, then `drizzle/0002_production_readiness.sql` to the remote database.
+4. Run `npm run office:secret` and configure the printed `OFFICE_SETUP_HASH` as a runtime secret.
 5. Configure Cloudflare Access for agent/office routes and provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` to the Worker.
 6. Deploy from `main`.
-7. Activate the office with the one-time setup secret.
+7. Confirm `GET /api/health` returns `"status":"ready"`, then run `npm run verify:production -- https://<domain>`.
+8. Activate the office with the one-time setup secret, confirm the `office` row, then rotate `OFFICE_SETUP_HASH`.
+
+Full checklist: `docs/GO_LIVE.md`.
 
 ## Agent security session
 
@@ -47,7 +50,15 @@ Loss of network changes health to `offline`; it does not intentionally clear acq
 
 ## Closing a visit
 
-Pause and arrival stop local acquisition first. Private Office records a pending terminal action locally, drains the observation queue, then submits the terminal action with the final sequence number. D1 refuses to close the epoch if that sequence has not yet been persisted. The pending action retries after reconnect/reload.
+Pause and arrival stop local acquisition first. Private Office records a pending terminal action locally, drains the observation queue, re-declares the final sequence from the local counter, then submits the terminal action. The Worker closes the epoch only when every sequence `0..final_sequence` is accounted for: a persisted observation or a persisted rejection record. Otherwise it answers `409 TELEMETRY_PENDING` with the missing ranges, or `409 FINAL_SEQUENCE_MISMATCH` if it holds data beyond the declared final. The pending action retries after reconnect/reload.
+
+## Tracking health and the watchdog
+
+The server evaluates health from the latest persisted position of the active epoch: 0–15 s healthy, 15–45 s delayed, 45–90 s stale, >90 s interrupted. A sequence gap, or a flagged current fix, turns healthy/delayed into **degraded**, and the office sees e.g. "TRACKING DEGRADED · 1 observation missing · Missing sequence: 84 · last received 87". The Cron watchdog (every minute) evaluates every `sharing` visit without anyone having the dashboard open. It writes `tracking_health_changed` events and logs `active_visit_unhealthy` for Workers Observability alerts. Thresholds live in `HEALTH_THRESHOLDS` (`lib/contracts.ts`) and should be tuned from field tests.
+
+## Retention and evidence export
+
+Retention runs daily at 01:00 UTC (03:00 Africa/Harare) from the Cron Trigger. Policy: `RETENTION_POLICY` in `lib/maintenance.ts`. The office dashboard triggers retention only if the scheduler is more than 26 h overdue. Before retention removes a visit you need to keep, export it from the visit review ("Export evidence package"). The export is an owner-only JSON package with visit, agent, device keys, per-epoch sequence proof, raw observations, rejections, audit and security events, client confirmation, and a SHA-256 digest.
 
 ## Native shell
 
