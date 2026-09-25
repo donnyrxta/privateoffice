@@ -1,12 +1,12 @@
 'use client';
 import {Input} from '@/components/ui/input';
 import {useEffect,useState} from 'react';
-import {Plus,ArrowRight,Copy,Check,ShieldCheck,MapPin,RefreshCw,LockKeyhole} from 'lucide-react';
+import {Plus,ArrowRight,Copy,MapPin,RefreshCw,LockKeyhole} from 'lucide-react';
 import {Header} from './landing';
 import LocationMap from './location-map';
 import {api,post,date,age} from '@/lib/client';
 import {demoVisit} from '@/lib/demo';
-import {statusLabel,distanceMetres,FRESH_MS,type Visit} from '@/lib/contracts';
+import {statusLabel,FRESH_MS,type Visit} from '@/lib/contracts';
 import {qualityFromAccuracy,qualityLabel} from '@/lib/telemetry/shared';
 import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {AlertDialog,AlertDialogContent,AlertDialogHeader,AlertDialogTitle,AlertDialogDescription,AlertDialogFooter,AlertDialogCancel,AlertDialogAction} from '@/components/ui/alert-dialog';
