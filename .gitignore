@@ -48,3 +48,8 @@ next-env.d.ts
 .dev.vars*
 !.env.example
 *.tsbuildinfo
+
+# native generated platforms and dependencies
+/native/node_modules/
+/native/android/
+/native/ios/

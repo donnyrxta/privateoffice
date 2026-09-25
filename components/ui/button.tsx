@@ -1,0 +1,1 @@
+import * as React from "react"; import {cn} from "@/lib/utils"; export function Button({className,...p}:React.ComponentProps<"button">){return <button className={cn("button",className)} {...p}/>;} export const buttonVariants=()=>"button";

@@ -1,0 +1,2 @@
+import {user,db,json,wrap,agentDecorated,RETENTION_MS} from '@/lib/server';
+export async function GET(){return wrap(async()=>{const u=await user();const rows=await db().prepare('SELECT * FROM visits WHERE agent_id=? AND created_at>=? ORDER BY scheduled_at DESC LIMIT 60').bind(u.userId,Date.now()-RETENTION_MS).all();return json({visits:await Promise.all(rows.results.map(v=>agentDecorated(v))),email:u.email})})}

@@ -1,0 +1,10 @@
+import {FastSQL} from '@capgo/capacitor-fast-sql';
+export type NativeObservation={id:string;scope:string;visit_id:string;share_epoch:string;sequence_number:number;payload_json:string;created_at:number;rejected_code:string|null};
+export class NativeTelemetryOutbox{
+  private db:any;
+  async open(){if(this.db)return;this.db=await FastSQL.connect({database:'private-office-telemetry'});await this.db.execute(`CREATE TABLE IF NOT EXISTS observations (id TEXT PRIMARY KEY,scope TEXT NOT NULL,visit_id TEXT NOT NULL,share_epoch TEXT NOT NULL,sequence_number INTEGER NOT NULL,payload_json TEXT NOT NULL,created_at INTEGER NOT NULL,rejected_code TEXT,UNIQUE(scope,sequence_number));CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY,value TEXT NOT NULL);CREATE TABLE IF NOT EXISTS security_events (id TEXT PRIMARY KEY,payload_json TEXT NOT NULL,device_at INTEGER NOT NULL,rejected_code TEXT);CREATE TABLE IF NOT EXISTS terminal_actions (visit_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);`)}
+  async nextSequence(scope:string){await this.open();return this.db.transaction(async(tx:any)=>{const rows=await tx.query('SELECT value FROM meta WHERE key=?',['seq:'+scope]);const current=rows.length?Number(rows[0].value):-1,next=current+1;await tx.run('INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',['seq:'+scope,String(next)]);return next})}
+  async enqueueObservation(row:NativeObservation){await this.open();await this.db.run('INSERT OR REPLACE INTO observations(id,scope,visit_id,share_epoch,sequence_number,payload_json,created_at,rejected_code) VALUES(?,?,?,?,?,?,?,?)',[row.id,row.scope,row.visit_id,row.share_epoch,row.sequence_number,row.payload_json,row.created_at,row.rejected_code])}
+  async pending(scope:string,limit=100){await this.open();return this.db.query('SELECT * FROM observations WHERE scope=? AND rejected_code IS NULL ORDER BY sequence_number LIMIT ?',[scope,limit])}
+  async acknowledge(ids:string[]){if(!ids.length)return;await this.open();await this.db.transaction(async(tx:any)=>{for(const id of ids)await tx.run('DELETE FROM observations WHERE id=?',[id])})}
+}

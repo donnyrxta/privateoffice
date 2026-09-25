@@ -1,0 +1,8 @@
+'use client';
+import {post} from '@/lib/client';
+import {base64url,canonicalJson} from './shared';
+import {getKeyRecord,putKeyRecord} from './outbox';
+export type DeviceIdentity={deviceId:string;privateKey:CryptoKey;publicJwk:JsonWebKey};
+export async function deviceIdentity():Promise<DeviceIdentity>{const existing=await getKeyRecord();if(existing)return {deviceId:existing.deviceId,privateKey:existing.privateKey,publicJwk:existing.publicJwk};const generated=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);const publicJwk=await crypto.subtle.exportKey('jwk',generated.publicKey);const privateJwk=await crypto.subtle.exportKey('jwk',generated.privateKey);const privateKey=await crypto.subtle.importKey('jwk',privateJwk,{name:'ECDSA',namedCurve:'P-256'},false,['sign']);const deviceId=crypto.randomUUID();await putKeyRecord({id:'device-signing',deviceId,privateKey,publicJwk});return {deviceId,privateKey,publicJwk}}
+export async function signEnvelope(identity:DeviceIdentity,envelope:unknown){const signature=await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},identity.privateKey,new TextEncoder().encode(canonicalJson(envelope)));return base64url(new Uint8Array(signature))}
+export async function enroll(identity:DeviceIdentity,sessionId:string){const platform=typeof navigator!=='undefined'?(navigator.userAgent.includes('Android')?'android-web':navigator.userAgent.includes('iPhone')||navigator.userAgent.includes('iPad')?'ios-web':'web'):'web';return post('/api/agent/device',{device_id:identity.deviceId,session_id:sessionId,public_key_jwk:identity.publicJwk,platform,app_version:'web-prototype-2026.09.25'})}
