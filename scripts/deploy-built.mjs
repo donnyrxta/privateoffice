@@ -28,6 +28,8 @@ if(!preferred){
 let config;
 try{config=JSON.parse(readFileSync(preferred,'utf8'))}catch{console.error(`Could not parse ${relative(root,preferred)}.`);process.exit(1)}
 const db=(config.d1_databases||[]).find(d=>d.binding==='DB');
+const previewBranch=process.env.WORKERS_CI==='1'&&!!process.env.WORKERS_CI_BRANCH&&process.env.WORKERS_CI_BRANCH!=='main';
+if(previewBranch&&!db){console.log(`Preview branch ${process.env.WORKERS_CI_BRANCH}: Worker compiled successfully. No isolated preview D1 is configured, so deployment is intentionally skipped.`);process.exit(0)}
 const problems=[];
 if(!db)problems.push('The generated Worker has no D1 binding named DB.');
 else if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(db.database_id||'')||db.database_id==='00000000-0000-4000-8000-000000000000')problems.push('The DB binding does not reference a real D1 database ID.');
