@@ -5,6 +5,7 @@ import {useEffect} from 'react';
 export default function PortfolioMotion(){
   useEffect(()=>{
     const root=document.documentElement;
+    root.classList.add('po-motion-ready');
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     const reveals=[...document.querySelectorAll<HTMLElement>('[data-po-reveal]')];
     const parallax=[...document.querySelectorAll<HTMLElement>('[data-po-parallax]')];
@@ -47,6 +48,7 @@ export default function PortfolioMotion(){
       removeEventListener('scroll',request);
       removeEventListener('resize',request);
       if(raf)cancelAnimationFrame(raf);
+      root.classList.remove('po-motion-ready');
     };
   },[]);
   return null;

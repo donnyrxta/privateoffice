@@ -81,8 +81,9 @@
 
 
 /* Private Office portfolio experience — governed by PORTFOLIO_DESIGN_SYSTEM.md */
-[data-po-reveal]{opacity:0;transform:translate3d(0,22px,0);transition:opacity .58s cubic-bezier(.22,.61,.36,1),transform .58s cubic-bezier(.22,.61,.36,1)}
-[data-po-reveal].is-visible{opacity:1;transform:translate3d(0,0,0)}
+[data-po-reveal]{opacity:1;transform:none}
+.po-motion-ready [data-po-reveal]{opacity:0;transform:translate3d(0,22px,0);transition:opacity .58s cubic-bezier(.22,.61,.36,1),transform .58s cubic-bezier(.22,.61,.36,1)}
+.po-motion-ready [data-po-reveal].is-visible{opacity:1;transform:translate3d(0,0,0)}
 [data-po-parallax]{transform:translate3d(0,var(--po-parallax-y,0),0) scale(1.035);will-change:transform}
 
 .po-header{height:84px;position:relative;z-index:40;padding:0 clamp(20px,4.5vw,72px);display:flex;align-items:center;justify-content:space-between;background:#101b22;color:#fff;border-bottom:1px solid #ffffff1d}
