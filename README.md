@@ -94,7 +94,7 @@ See native/README.md. The native shell intentionally does not use Capgo's best-e
 ## Main routes
 
 - / — premium contracted-agent login; no portfolio content before authentication
-- /residences — authenticated agent portfolio; requires a fresh precise session location
+- /residences — authenticated editorial portfolio; requires a fresh precise session location\n- /residences/tierra-viva — authenticated Tierra Viva project brief\n- /residences/tierra-viva/[residence] — authenticated residence-type detail for Diamante, Zafiro and Esmeralda
 - /agent — Private Office credential login and assigned-visit workspace
 - /office — owner workspace, visit history and security activity
 - /visit/[id] — private client arrival view
