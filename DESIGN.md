@@ -20,3 +20,12 @@ Forms, focus, status and error states share the same tokens. Body copy remains >
 - Arrival visibility is a quiet appointment feature. Detailed telemetry belongs in agent, office, privacy and diagnostic routes.
 - Property-facing pages use cinematic architecture, editorial hierarchy, generous negative space and restrained interaction; do not turn them into dashboards.
 - Full-bleed hero imagery must use a source at least 1600 px wide. Never stretch the 420×246 derivative across a hero. The supplied source package includes a 2000×1171 render and the connected Canva source is higher resolution.
+
+
+## Portfolio design system — mandatory
+
+All property-facing UI must comply with [PORTFOLIO_DESIGN_SYSTEM.md](./PORTFOLIO_DESIGN_SYSTEM.md).
+
+That document is normative and acts as a design merge gate. Its Anti-Slop Contract, Apple Interaction Contract, Luxury Composition Rules, Canva Property Media Contract, prohibited-pattern catalogue and PR acceptance checklist must be read before modifying the homepage, portfolio, project/residence detail pages or shared property components.
+
+If an implementation conflicts with that contract, the implementation must change unless the PR follows the documented exception protocol.
