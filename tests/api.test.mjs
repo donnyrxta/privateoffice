@@ -28,6 +28,8 @@ try{
   let r=await request('/api/office/visits');eq(r.status,401,'anonymous office denied');
   r=await request('/api/office/setup',{as:'owner',data:{key:setup}});eq(r.status,200,'owner setup succeeds');
   r=await request('/api/office/visits',{as:'other'});eq(r.status,403,'other authenticated user denied office');
+  r=await request('/api/office/auth-check',{as:'owner'});eq(r.status,200,'office auth-check accepts authenticated admin identity');eq(r.body.authenticated,true,'office auth-check confirms Access identity boundary');
+  r=await request('/api/office/auth-check');eq(r.status,401,'office auth-check denies anonymous visitor');
   r=await request('/api/office/agents',{as:'owner',data:{full_name:'Credential Agent',username:'credential.agent',email:'credential.agent@example.invalid'}});eq(r.status,201,'office issues contracted agent account');const issued=r.body;eq(typeof issued.password,'string','agent password returned once');
   r=await request('/api/agent/login',{data:{username:'credential.agent',password:'wrong-password'}});eq(r.status,401,'wrong agent password denied');
   r=await request('/api/agent/login',{data:{username:'credential.agent',password:issued.password}});eq(r.status,200,'issued agent credentials authenticate');const agentCookie=r.headers.get('set-cookie')?.split(';')[0];eq(agentCookie?.startsWith('po_agent_session='),true,'agent receives HttpOnly web session cookie');
