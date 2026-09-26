@@ -76,3 +76,5 @@
 
 .agent-account-row-rich{align-items:start}.agent-location-line{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#46565e!important}.agent-activity-summary{min-width:220px}.agent-activity-summary>span{font-size:11px;color:#56666e}.agent-activity-summary .text-link{justify-self:end}
 @media(max-width:650px){.agent-activity-summary{min-width:0}.agent-activity-summary .text-link{justify-self:start}}
+
+.office-access-shell{min-height:calc(100svh - 98px);display:grid;place-items:center;background:#f3f2ee;padding:48px 20px}.office-access-card{width:min(680px,100%);background:#fff;border:1px solid #d9dede;padding:clamp(30px,5vw,54px);box-shadow:0 20px 60px #101b220d}.office-access-card .sign-in-title{max-width:620px}.office-access-card form{max-width:520px}
