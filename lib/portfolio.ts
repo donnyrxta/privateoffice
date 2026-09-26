@@ -44,16 +44,40 @@ const diamante:ResidenceType={
   },
   gallery:[
     {
-      src:'https://cdn.darglobal.co.uk/thumbnail_dg_al_diamente_villa_ext_1_a3cdf901b2.jpg',
+      src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_1_2_61d5e1af77.jpg',
       alt:'Tierra Viva Diamante villa exterior render',
       focal:'center 52%',
       label:'Exterior'
     },
     {
-      src:'https://cdn.darglobal.co.uk/thumbnail_dg_al_diamente_villa_id_living_eadb0bb73a.jpg',
+      src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_3_2_998bbe6335.jpg',
+      alt:'Tierra Viva Diamante villa exterior and pool render',
+      focal:'center 52%',
+      label:'Exterior'
+    },
+    {
+      src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Living_2_ce83c0be6a.jpg',
       alt:'Tierra Viva Diamante villa living interior render',
       focal:'center 58%',
       label:'Living'
+    },
+    {
+      src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Dining_2_c62c786900.jpg',
+      alt:'Tierra Viva Diamante villa dining interior render',
+      focal:'center 54%',
+      label:'Dining'
+    },
+    {
+      src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Kitchen_Dining_2_5fe13fa645.jpg',
+      alt:'Tierra Viva Diamante villa kitchen and dining interior render',
+      focal:'center 54%',
+      label:'Kitchen'
+    },
+    {
+      src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Master_Bedroom_2_96b22bcd47.jpg',
+      alt:'Tierra Viva Diamante villa master bedroom render',
+      focal:'center 54%',
+      label:'Master bedroom'
     }
   ],
   sourceNote:'Residence-type material is retained in the Private Office source library. Current availability and commercial terms must be confirmed by the office before presentation to a client.'
