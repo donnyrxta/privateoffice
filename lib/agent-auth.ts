@@ -12,8 +12,8 @@ export const AGENT_PRESENCE_POST_MS=15_000;
 
 const encoder=new TextEncoder();
 function b64url(bytes:Uint8Array){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-function fromB64url(value:string){const s=value.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(value.length/4)*4,'=');const raw=atob(s);return Uint8Array.from(raw,c=>c.charCodeAt(0))}
-function randomBytes(n:number){const a=new Uint8Array(n);crypto.getRandomValues(a);return a}
+function fromB64url(value:string):Uint8Array<ArrayBuffer>{const s=value.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(value.length/4)*4,'=');const raw=atob(s),out=new Uint8Array(new ArrayBuffer(raw.length));for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
+function randomBytes(n:number):Uint8Array<ArrayBuffer>{const a=new Uint8Array(new ArrayBuffer(n));crypto.getRandomValues(a);return a}
 async function digest(value:string){const out=new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(value)));return [...out].map(b=>b.toString(16).padStart(2,'0')).join('')}
 async function derive(password:string,salt:string,iterations:number){const key=await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveBits']);return b64url(new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:fromB64url(salt),iterations,hash:'SHA-256'},key,256)))}
 function safeEqual(a:string,b:string){if(a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);return diff===0}
