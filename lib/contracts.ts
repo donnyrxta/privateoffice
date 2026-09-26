@@ -10,7 +10,7 @@ export type Visit={id:string;health?:HealthDetail;agent_name:string;agent_email?
 export function distanceMetres(a:{lat:number;lng:number},b:{lat:number;lng:number}){const rad=Math.PI/180,dl=(b.lat-a.lat)*rad,dn=(b.lng-a.lng)*rad;const q=Math.sin(dl/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dn/2)**2;return 6371000*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
 export function statusLabel(s:string){return ({scheduled:'Visit scheduled',accepted:'Ready for visit',sharing:'On the way',paused:'Sharing stopped',arrived:'Arrival reported',completed:'Visit completed',revoked:'Visit cancelled',expired:'Visit expired'} as Record<string,string>)[s]||s}
 // Production readiness contract. Bump SCHEMA_VERSION with every migration that the Worker depends on.
-export const SCHEMA_VERSION='0002_production_readiness';
+export const SCHEMA_VERSION='0003_agent_credentials';
 // Server-side tracking-health thresholds measured from the latest persisted position (field-tune before go-live).
 export const HEALTH_THRESHOLDS={delayedMs:15_000,staleMs:45_000,interruptedMs:90_000};
 export type TrackingHealthState='idle'|'acquiring'|'healthy'|'delayed'|'degraded'|'stale'|'interrupted'|'window_elapsed'|'completed'|'revoked';

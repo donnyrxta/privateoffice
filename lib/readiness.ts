@@ -3,7 +3,7 @@ import {getOps} from './maintenance';
 
 type RuntimeEnv={DB?:D1Database;OFFICE_SETUP_HASH?:string;CF_ACCESS_TEAM_DOMAIN?:string;CF_ACCESS_AUD?:string;PRIVATE_OFFICE_STANDALONE?:string};
 
-export const REQUIRED_TABLES=['office','enquiries','visits','points','events','rate_limits','devices','agent_sessions','security_events','observation_rejections','schema_migrations','ops_state'] as const;
+export const REQUIRED_TABLES=['office','enquiries','visits','points','events','rate_limits','devices','agent_sessions','security_events','observation_rejections','schema_migrations','ops_state','agent_accounts','agent_web_sessions'] as const;
 export const REQUIRED_COLUMNS:Record<string,string[]>={
   visits:['active_device_id','last_sequence','tracking_health','missing_observations','health_reason','health_evaluated_at'],
   points:['device_id','share_epoch','sequence_number','altitude','altitude_accuracy','heading','speed','simulated','queued_at','quality_class','plausibility_state','payload_hash','integrity_flags'],

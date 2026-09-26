@@ -10,7 +10,7 @@ export const WATCHDOG_CRON='* * * * *';
 /** 03:00 Africa/Harare (UTC+2, no DST) = 01:00 UTC. */
 export const RETENTION_CRON='0 1 * * *';
 
-export const RETENTION_POLICY={telemetryMs:RETENTION_MS,securityEventsMs:RETENTION_MS,visitEventsMs:RETENTION_MS,visitsMs:RETENTION_MS,closedSessionsMs:RETENTION_MS,enquiriesMs:90*86400000};
+export const RETENTION_POLICY={telemetryMs:RETENTION_MS,securityEventsMs:RETENTION_MS,visitEventsMs:RETENTION_MS,visitsMs:RETENTION_MS,closedSessionsMs:RETENTION_MS,enquiriesMs:90*86400000,agentWebSessionsMs:7*86400000};
 const RETENTION_OVERDUE_MS=26*3600000;
 const ALERT_STATES=new Set(['degraded','stale','interrupted']);
 
@@ -28,9 +28,10 @@ export async function runRetention(d1:D1Database,now=Date.now()){
     d1.prepare('DELETE FROM enquiries WHERE created_at < ?').bind(now-p.enquiriesMs),
     d1.prepare('DELETE FROM visits WHERE created_at < ?').bind(now-p.visitsMs),
     d1.prepare('DELETE FROM agent_sessions WHERE ended_at IS NOT NULL AND ended_at < ?').bind(now-p.closedSessionsMs),
+    d1.prepare('DELETE FROM agent_web_sessions WHERE expires_at < ? OR (revoked_at IS NOT NULL AND revoked_at < ?)').bind(now,now-p.agentWebSessionsMs),
     d1.prepare('DELETE FROM rate_limits WHERE expires_at < ?').bind(now),
   ]);
-  const names=['points','observation_rejections','security_events','events','enquiries','visits','agent_sessions','rate_limits'];
+  const names=['points','observation_rejections','security_events','events','enquiries','visits','agent_sessions','agent_web_sessions','rate_limits'];
   const deleted=Object.fromEntries(names.map((n,i)=>[n,results[i]?.meta?.changes??0]));
   await setOps(d1,'retention_last_run',{deleted},now);
   opsLog('info','retention_completed',{deleted});
