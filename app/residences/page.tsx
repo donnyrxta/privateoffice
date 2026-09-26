@@ -1,53 +1,80 @@
 import {redirect} from 'next/navigation';
-import {ArrowRight} from 'lucide-react';
-import AgentHeader from '@/components/agent-header';
 import AgentPresenceGuard from '@/components/agent-presence-guard';
+import PortfolioHeader from '@/components/portfolio-header';
+import PortfolioMotion from '@/components/portfolio-motion';
 import {getAgentSession,hasFreshPreciseLocation} from '@/lib/agent-auth';
+import {tierraViva} from '@/lib/portfolio';
 
-const HERO='https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_2_2_a4790ab5a2.jpg';
-
-export const metadata={title:'Property Portfolio | Private Office',description:'Private Office agent portfolio of international off-plan property.'};
+export const metadata={title:'Portfolio | Private Office',description:'Private Office authenticated property portfolio.'};
+export const dynamic='force-dynamic';
 
 export default async function Page(){
-  const session=await getAgentSession();if(!session)redirect('/');if(!hasFreshPreciseLocation(session))redirect('/agent/location');
-  return <div className="residences-page"><AgentPresenceGuard/><AgentHeader/><main>
-    <section className="residence-hero">
-      <img src={HERO} alt="Tierra Viva villa architectural render" fetchPriority="high"/>
-      <div className="residence-hero-shade"/>
-      <div className="residence-hero-copy">
-        <p className="eyebrow">PRIVATE OFFICE · AGENT PORTFOLIO</p>
-        <h1>Know the property.<br/><em>Represent it properly.</em></h1>
-        <p>Your working portfolio of international off-plan opportunities. Use it to prepare for client conversations, appointments and follow-up from a professional environment.</p>
-        <a className="button light" href="/agent">View assigned visits <ArrowRight size={18}/></a>
-      </div>
-      <div className="residence-hero-index"><span>PRIVATE OFFICE</span><span>CONTRACTED REPRESENTATIVE ACCESS</span></div>
-    </section>
+  const session=await getAgentSession();
+  if(!session)redirect('/');
+  if(!hasFreshPreciseLocation(session))redirect('/agent/location');
+  return <div className="po-portfolio">
+    <AgentPresenceGuard/>
+    <PortfolioMotion/>
+    <PortfolioHeader/>
+    <main>
+      <section className="po-portfolio-intro">
+        <div data-po-reveal>
+          <p className="po-kicker">PRIVATE OFFICE · PORTFOLIO</p>
+          <h1>Selected property.<br/><em>Prepared for private conversations.</em></h1>
+        </div>
+        <div className="po-portfolio-intro-note" data-po-reveal>
+          <p>Use the portfolio as a working brief: understand the architecture, residence types and verified project facts before a client conversation.</p>
+          <div><span>SESSION</span><strong>Location verified</strong></div>
+        </div>
+      </section>
 
-    <section className="residence-feature">
-      <div className="residence-feature-copy">
-        <p className="eyebrow">PORTFOLIO BRIEF · BENAHAVÍS, SPAIN</p>
-        <h2>Tierra Viva</h2>
-        <p className="residence-lede">A gated collection of ultra-luxury villas in the hills of Benahavís, developed by DarGlobal with design inspired by Automobili Lamborghini.</p>
-        <p>Set above the Costa del Sol, the villas are positioned at varied elevations for Mediterranean views. The development is currently under construction and spans 4- to 6-bedroom villa typologies.</p>
-        <a className="text-link" href="/agent">Return to client visits <ArrowRight size={18}/></a>
-      </div>
-      <div className="residence-facts" aria-label="Tierra Viva agent brief">
-        <div><span>LOCATION</span><strong>Benahavís · Spain</strong></div>
-        <div><span>PROPERTY TYPE</span><strong>Ultra-luxury villas</strong></div>
-        <div><span>STATUS</span><strong>Under development</strong></div>
-        <div><span>RESIDENCE TYPES</span><strong>4–6 bedrooms</strong></div>
-      </div>
-    </section>
+      <section className="po-feature-project" aria-labelledby="featured-project">
+        <a className="po-feature-media" href="/residences/tierra-viva" aria-label="Open Tierra Viva project brief">
+          <img src={tierraViva.hero.src} alt={tierraViva.hero.alt} style={{objectPosition:tierraViva.hero.focal}} fetchPriority="high" data-po-parallax=".035"/>
+          <span className="po-image-index">01 / PROJECT</span>
+        </a>
+        <div className="po-feature-copy" data-po-reveal>
+          <p className="po-kicker">CURRENT WORKING BRIEF · {tierraViva.location.toUpperCase()}, {tierraViva.country.toUpperCase()}</p>
+          <h2 id="featured-project">{tierraViva.name}</h2>
+          <p className="po-feature-lede">{tierraViva.positioning}</p>
+          <div className="po-feature-meta">
+            <span>{tierraViva.facts[0].value}</span>
+            <span>{tierraViva.facts[1].value}</span>
+            <span>{tierraViva.residences.length} residence types in source library</span>
+          </div>
+          <a className="po-arrow-link" href="/residences/tierra-viva">Enter project brief <span aria-hidden="true">→</span></a>
+        </div>
+      </section>
 
-    <section className="residence-process">
-      <div className="residence-process-intro"><p className="eyebrow">REPRESENTATIVE DISCIPLINE</p><h2>Prepare before<br/>the conversation.</h2></div>
-      <div className="residence-steps">
-        <article><span>01</span><h3>Know the brief</h3><p>Understand the client’s destination, intended use, timing, budget range and decision context before recommending a development.</p></article>
-        <article><span>02</span><h3>Know the property</h3><p>Use the portfolio material to distinguish verified project information from assumptions, availability changes or unconfirmed commercial terms.</p></article>
-        <article><span>03</span><h3>Represent the office</h3><p>Handle client conversations and follow-up with the discretion, environment and preparation expected of Private Office representation.</p></article>
-      </div>
-    </section>
+      <section className="po-residence-index">
+        <div className="po-section-heading" data-po-reveal>
+          <p className="po-kicker">TIERRA VIVA · RESIDENCE TYPES</p>
+          <h2>Three expressions<br/>of the hillside.</h2>
+          <p>Residence material is presented for agent preparation. Current unit availability and commercial terms are confirmed separately by the office.</p>
+        </div>
+        <div className="po-residence-composition">
+          {tierraViva.residences.map((residence,index)=><a
+            key={residence.slug}
+            href={'/residences/tierra-viva/'+residence.slug}
+            className={'po-residence-tile po-residence-tile-'+(index+1)}
+            data-po-reveal
+          >
+            <div className="po-residence-image">
+              <img src={residence.hero.src} alt={residence.hero.alt} style={{objectPosition:residence.hero.focal}} loading="lazy"/>
+              <span>{String(index+1).padStart(2,'0')}</span>
+            </div>
+            <div className="po-residence-caption">
+              <div><strong>{residence.name}</strong><span>{residence.bedrooms}</span></div>
+              <span aria-hidden="true">↗</span>
+            </div>
+          </a>)}
+        </div>
+      </section>
 
-    <section className="residence-note"><p>Project information is sourced from the developer and may change. Availability, commercial terms and representation are confirmed by the office before they are presented as current.</p></section>
-  </main></div>
+      <section className="po-portfolio-truth" data-po-reveal>
+        <div><span>PORTFOLIO STATE</span><strong>Working brief</strong></div>
+        <p>Project material may outlive current inventory. Private Office treats price, availability, payment plans and transaction terms as confirmation-required until the office verifies them for the specific client conversation.</p>
+      </section>
+    </main>
+  </div>
 }
