@@ -50,6 +50,7 @@ Apply the schema in order:
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0000_huge_blizzard.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0001_durable_telemetry.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
 
 ### Readiness
 
@@ -67,7 +68,7 @@ Configure:
     CF_ACCESS_TEAM_DOMAIN      https://<team>.cloudflareaccess.com
     CF_ACCESS_AUD              Cloudflare Access application AUD tag
 
-Protect /agent*, /office*, /api/agent* and /api/office* with Cloudflare Access. Standalone builds refuse the legacy injected-header identity path and require a valid Access JWT. The application validates JWT signature, issuer, audience and expiry against the team JWKS before trusting the agent/office identity.
+Protect /office* and /api/office* with Cloudflare Access. Contracted agents sign in at /agent using Private Office-issued credentials backed by D1 HttpOnly sessions; /agent* and /api/agent* must remain reachable so app-level authentication can run. The office validates Cloudflare Access JWT signature, issuer, audience and expiry against the team JWKS before trusting owner/admin identity.
 
 ## Development
 
@@ -93,7 +94,7 @@ See native/README.md. The native shell intentionally does not use Capgo's best-e
 
 - / — Private Office property-first landing and enquiry
 - /residences — private off-plan property selection and featured residence
-- /agent — authenticated agent workspace and telemetry health
+- /agent — Private Office credential login and assigned-visit workspace
 - /office — owner workspace, visit history and security activity
 - /visit/[id] — private client arrival view
 - /privacy — platform tracking/data notice

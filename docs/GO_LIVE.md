@@ -6,7 +6,7 @@ Status legend: **DONE** = implemented and covered by `npm run test:api` · **OPE
 
 | # | Blocker | Status | How it is enforced / what remains |
 |---|---------|--------|-----------------------------------|
-| 1 | Production D1 bound and migrated | Code **DONE**, binding **OPERATOR** | Build fails without a valid `CLOUDFLARE_D1_DATABASE_ID`; `deploy:built` refuses a config without `DB`; `/api/health` returns 503 until schema `0002_production_readiness` and all enriched columns exist. |
+| 1 | Production D1 bound and migrated | Code **DONE**, binding **OPERATOR** | Build fails without a valid `CLOUDFLARE_D1_DATABASE_ID`; `deploy:built` refuses a config without `DB`; `/api/health` returns 503 until schema `0003_agent_credentials` and all enriched columns exist. |
 | 2 | Cloudflare Access + runtime secrets | Code **DONE**, config **OPERATOR** | `/api/health` reports `access: missing` → 503 in standalone builds. `npm run office:secret` generates the bootstrap secret; `npm run verify:production` checks the anonymous side of the Access boundary. |
 | 3 | Contiguous-sequence terminal validation | **DONE** | Terminal actions require `COUNT = final+1`, `MIN = 0`, `MAX = final`. `0,1,3` cannot close at `3` (`TELEMETRY_PENDING` + exact gaps); data beyond the declared final is `FINAL_SEQUENCE_MISMATCH`. |
 | 4 | Production health/readiness checks | **DONE** | `GET /api/health`, plus the cron watchdog/retention heartbeats. |
@@ -33,7 +33,7 @@ Status legend: **DONE** = implemented and covered by `npm run test:api` · **OPE
 | 12 | Spoofing signals | DONE server-side: `simulated_location`, `implausible_speed`, `timestamp_anomaly` stored per fix as `integrity_flags`; sequence gaps at visit level. Invalid fixes are persisted in `observation_rejections` with raw payload and reason, never silently dropped. |
 | 13 | Route-aware ETA | OPEN: needs a routing provider account/key |
 | 14 | Production tile provider | OPEN: needs a provider account/key (currently `tile.openstreetmap.org`) |
-| 15 | Real agent profiles | OPEN |
+| 15 | Real agent profiles | PARTIAL: D1 agent accounts, issued credentials, name/email and direct assignment are implemented; photo/vehicle fields remain open. |
 | 16 | Arrival challenge code | OPEN |
 | 17 | Scheduled retention | DONE: Cron `0 1 * * *` (03:00 Harare). The office dashboard runs retention only if the scheduler is >26 h overdue. |
 | 18 | Operational logging | PARTIAL: structured JSON logs (`active_visit_unhealthy`, `terminal_refused`, `retention_completed`, `scheduled_failed`, …) for Workers Observability. Alert routing is OPERATOR. |
@@ -56,15 +56,17 @@ npx wrangler d1 create private-office-d1          # copy the database_id
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0000_huge_blizzard.sql
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0001_durable_telemetry.sql
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
+npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
 npx wrangler d1 execute private-office-d1 --remote --command "SELECT version FROM schema_migrations ORDER BY version"
 
 # 3. Secrets / vars (Worker → Settings → Variables and Secrets)
 npm run office:secret                              # prints secret + OFFICE_SETUP_HASH
 #    OFFICE_SETUP_HASH, CF_ACCESS_TEAM_DOMAIN, CF_ACCESS_AUD
 
-# 4. Cloudflare Access application protecting:
-#    /agent*  /office*  /api/agent/*  /api/office/*
-#    Leave public: /  /privacy  /visit/*  /api/client/*  /api/enquiries  /api/health
+# 4. Cloudflare Access protects owner/admin only:
+#    /office*  /api/office/*
+#    Agents use Private Office credentials, so leave /agent* and /api/agent/* reachable.
+#    Also public: /  /residences  /privacy  /gps-test  /visit/*  /api/client/*  /api/enquiries  /api/health
 
 # 5. Deploy (Workers Builds: build `npm run build:cloudflare`, deploy `npm run deploy:built`)
 
@@ -76,6 +78,6 @@ npm run verify:production -- https://<domain> --client-link 'https://<domain>/vi
 
 The deploy gate checks that the generated config contains the watchdog and retention Cron Triggers. After the first minute, `/api/health` should report `scheduler.watchdog: running`.
 
-**Authenticated Access matrix (manual, two real Access identities):** agent A opens their own assigned visit → allowed. Agent A opens agent B's `/api/agent/visit/<id>` → 403. A non-owner opens `/office` → setup/denied, and `/api/office/visit/<id>/export` → 403.
+**Authentication matrix:** contracted agent A signs in with issued Private Office credentials and sees only visits bound to agent A; another agent's `/api/agent/visit/<id>` returns 403. Cloudflare Access is reserved for owner/admin routes: a non-owner cannot use `/api/office/*` or evidence export.
 
 **Backups:** D1 Time Travel gives point-in-time restore (30 days on Workers Paid, 7 on Free) (`npx wrangler d1 time-travel restore private-office-d1 --timestamp=<ISO>`). For off-platform copies, schedule `npx wrangler d1 export private-office-d1 --remote --output=backup-$(date +%F).sql` from a trusted machine and store it encrypted. Rehearse a restore into a scratch database before go-live.

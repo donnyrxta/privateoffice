@@ -17,9 +17,9 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 
 1. Create D1 database `private-office-d1`.
 2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID. Without it the build fails.
-3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, then `drizzle/0002_production_readiness.sql` to the remote database.
+3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, then `drizzle/0003_agent_credentials.sql` to the remote database.
 4. Run `npm run office:secret` and configure the printed `OFFICE_SETUP_HASH` as a runtime secret.
-5. Configure Cloudflare Access for agent/office routes and provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` to the Worker.
+5. Configure Cloudflare Access for `/office*` and `/api/office/*` only, then provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD`. Contracted agents use Private Office-issued credentials.
 6. Deploy from `main`.
 7. Confirm `GET /api/health` returns `"status":"ready"`, then run `npm run verify:production -- https://<domain>`.
 8. Activate the office with the one-time setup secret, confirm the `office` row, then rotate `OFFICE_SETUP_HASH`.
@@ -28,15 +28,15 @@ Full checklist: `docs/GO_LIVE.md`.
 
 ## Agent security session
 
-Opening the authenticated agent workspace enrolls or reconnects a browser device identity and opens an auditable security session. The browser generates a P-256 signing key and stores the non-extractable signing key in its local IndexedDB record. Relevant workspace lifecycle, network and location-provider events are queued locally and sent as signed security-event batches.
+After a contracted agent signs in with the Private Office credentials issued by the office, the workspace enrolls or reconnects a browser device identity and opens an auditable security session. The browser generates a P-256 signing key and stores the non-extractable signing key in its local IndexedDB record. Relevant workspace lifecycle, network and location-provider events are queued locally and sent as signed security-event batches.
 
 If location permission has already been granted, the web prototype also records lower-frequency engaged-session location observations as security events while the agent workspace is active. The native shell is designed to start its native provider for the same engaged state.
 
 ## Customer visit
 
-1. Office creates an assignment and sends the private agent/client links.
-2. Agent accepts the assignment with the current notice version.
-3. At departure the agent starts the visit. The server creates a new share epoch bound to the registered device.
+1. Office creates the contracted agent account once and gives the username/password directly to that agent.
+2. Office assigns a customer visit to that agent username and sends only the private arrival link to the intended client.
+3. The agent visits `/agent`, signs in, sees the assigned visit, and at departure starts the visit. The server creates a new share epoch bound to the registered device.
 4. The device requests the best practical fix and begins high-accuracy acquisition.
 5. Every callback is written to the local durable outbox with UUID + persistent sequence before transport.
 6. Batches are signed by the registered device key and sent to `/api/agent/visit/:id/observations`.
