@@ -38,8 +38,12 @@ try{
   r=await request('/api/agent',{cookie:agentCookie});eq(r.status,428,'agent dashboard locked until precise location is supplied');eq(r.body.code,'LOCATION_REQUIRED','locked dashboard names location precondition');
   r=await request('/api/agent/presence',{cookie:agentCookie,data:{lat:-17.833,lng:31.041,accuracy:80,recorded_at:Date.now(),path:'/agent/location',duration_ms:0}});eq(r.status,409,'imprecise fix does not unlock agent session');eq(r.body.code,'PRECISION_REQUIRED','imprecise gate reports precision requirement');
   r=await request('/api/agent',{cookie:agentCookie});eq(r.status,428,'imprecise fix leaves dashboard locked');
+  r=await request('/residences',{cookie:agentCookie});eq(r.status,307,'portfolio route stays locked before a precise fix');
   r=await request('/api/agent/presence',{cookie:agentCookie,data:{lat:-17.833,lng:31.041,accuracy:5,recorded_at:Date.now(),path:'/agent/location',duration_ms:0}});eq(r.status,200,'precise presence unlocks contracted agent session');
   r=await request('/api/agent',{cookie:agentCookie});eq(r.status,200,'verified agent session opens assigned workspace');eq(r.body.visits.some(v=>v.id===directId),true,'contracted agent sees directly assigned visit');
+  r=await request('/residences',{cookie:agentCookie});eq(r.status,200,'verified agent can render editorial portfolio');
+  r=await request('/residences/tierra-viva',{cookie:agentCookie});eq(r.status,200,'verified agent can render project chapter');
+  r=await request('/residences/tierra-viva/diamante',{cookie:agentCookie});eq(r.status,200,'verified agent can render residence chapter');
   eq(!!(await db.prepare("SELECT 1 AS x FROM agent_page_activity WHERE agent_id=? AND path='/agent/location'").bind(issued.agent.id).first()),true,'location gate activity is persisted');
   r=await request('/api/enquiries',{data:{name:'QA',contact:'qa@example.invalid',interest:'Synthetic test',consent:true}});eq(r.status,201,'enquiry persisted');
   const input={agent_name:'QA agent',agent_email:'agent@example.invalid',client_name:'QA client',property:'Synthetic property',meeting:'Synthetic meeting point',lat:-17.78,lng:31.04,scheduled_at:Date.now()+3600000};
