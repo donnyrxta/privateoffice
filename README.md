@@ -1,6 +1,6 @@
 # Private Office — Property & People
 
-Private Office is a premium property-introduction and verified-arrival prototype for agents serving private clients. The interface is deliberately restrained; underneath it is a durable, device-bound telemetry system built for auditability and reliable client arrival visibility.
+Private Office is a premium international property experience for private buyers, with off-plan property discovery, considered introductions and discreet appointment coordination. The public proposition is property first. Device-bound telemetry sits underneath as an operational trust layer for assigned-agent visits; it is not the product being marketed.
 
 ## Architecture
 
@@ -91,12 +91,14 @@ See native/README.md. The native shell intentionally does not use Capgo's best-e
 
 ## Main routes
 
-- / — Private Office landing and enquiry
+- / — Private Office property-first landing and enquiry
+- /residences — private off-plan property selection and featured residence
 - /agent — authenticated agent workspace and telemetry health
 - /office — owner workspace, visit history and security activity
 - /visit/[id] — private client arrival view
 - /privacy — platform tracking/data notice
 - /agent/demo, /office/demo, /visit/demo — synthetic demonstrations
+- /gps-test — isolated browser/OS location acquisition test; no D1 upload
 
 ## Imagery
 
