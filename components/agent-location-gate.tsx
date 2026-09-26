@@ -14,7 +14,7 @@ export default function AgentLocationGate({name}:{name:string}){
   async function submitFix(next:Fix){
     if(sending.current||next.accuracy>REQUIRED)return;
     sending.current=true;
-    try{await post('/api/agent/presence',{...next,path:'/agent/location',duration_ms:0});location.replace('/agent')}
+    try{await post('/api/agent/presence',{...next,path:'/agent/location',duration_ms:0});location.replace('/residences')}
     catch(e){const err=e as Error&{code?:string};if(err.code==='PRECISION_REQUIRED'){sending.current=false;setStatus('too_wide');return}setError(err.message);setStatus('error');sending.current=false}
   }
 
@@ -37,7 +37,7 @@ export default function AgentLocationGate({name}:{name:string}){
     <div className="location-gate-top"><Brand/><button onClick={logout} className="location-gate-signout"><LogOut size={15}/>Sign out</button></div>
     <section className="location-gate-copy">
       <p className="eyebrow">IDENTITY CONFIRMED · LOCATION REQUIRED</p>
-      <h1>Good morning, {name.split(' ')[0]}.<br/><em>Verify where you are working from.</em></h1>
+      <h1>Good evening, {name.split(' ')[0]}.<br/><em>Verify where you are working from.</em></h1>
       <p>Private Office opens only after this device supplies a fresh precise fix. The access threshold is ±{REQUIRED} m or better.</p>
       <div className="location-gate-status">
         <div><span>AUTHENTICATION</span><strong><ShieldCheck size={16}/>VERIFIED</strong></div>
