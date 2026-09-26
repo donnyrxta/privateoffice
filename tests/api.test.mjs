@@ -34,6 +34,8 @@ try{
   const directInput={agent_username:'credential.agent',client_name:'Direct client',property:'Direct assigned property',meeting:'Direct meeting point',lat:-17.79,lng:31.06,scheduled_at:Date.now()+7200000};
   r=await request('/api/office/visits',{as:'owner',data:directInput});eq(r.status,201,'office assigns visit directly to contracted agent');eq(r.body.direct_agent,true,'direct assignment skips invitation acceptance');const directId=r.body.id;
   r=await request('/api/agent',{cookie:agentCookie});eq(r.status,428,'agent dashboard locked until precise location is supplied');eq(r.body.code,'LOCATION_REQUIRED','locked dashboard names location precondition');
+  r=await request('/api/agent/presence',{cookie:agentCookie,data:{lat:-17.833,lng:31.041,accuracy:80,recorded_at:Date.now(),path:'/agent/location',duration_ms:0}});eq(r.status,409,'imprecise fix does not unlock agent session');eq(r.body.code,'PRECISION_REQUIRED','imprecise gate reports precision requirement');
+  r=await request('/api/agent',{cookie:agentCookie});eq(r.status,428,'imprecise fix leaves dashboard locked');
   r=await request('/api/agent/presence',{cookie:agentCookie,data:{lat:-17.833,lng:31.041,accuracy:5,recorded_at:Date.now(),path:'/agent/location',duration_ms:0}});eq(r.status,200,'precise presence unlocks contracted agent session');
   r=await request('/api/agent',{cookie:agentCookie});eq(r.status,200,'verified agent session opens assigned workspace');eq(r.body.visits.some(v=>v.id===directId),true,'contracted agent sees directly assigned visit');
   eq(!!(await db.prepare("SELECT 1 AS x FROM agent_page_activity WHERE agent_id=? AND path='/agent/location'").bind(issued.agent.id).first()),true,'location gate activity is persisted');

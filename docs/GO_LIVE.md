@@ -6,7 +6,7 @@ Status legend: **DONE** = implemented and covered by `npm run test:api` · **OPE
 
 | # | Blocker | Status | How it is enforced / what remains |
 |---|---------|--------|-----------------------------------|
-| 1 | Production D1 bound and migrated | Code **DONE**, binding **OPERATOR** | Build fails without a valid `CLOUDFLARE_D1_DATABASE_ID`; `deploy:built` refuses a config without `DB`; `/api/health` returns 503 until schema `0003_agent_credentials` and all enriched columns exist. |
+| 1 | Production D1 bound and migrated | Code **DONE**, binding **OPERATOR** | Build fails without a valid `CLOUDFLARE_D1_DATABASE_ID`; `deploy:built` refuses a config without `DB`; `/api/health` returns 503 until schema `0004_agent_presence_gate` and all enriched columns exist. |
 | 2 | Cloudflare Access + runtime secrets | Code **DONE**, config **OPERATOR** | `/api/health` reports `access: missing` → 503 in standalone builds. `npm run office:secret` generates the bootstrap secret; `npm run verify:production` checks the anonymous side of the Access boundary. |
 | 3 | Contiguous-sequence terminal validation | **DONE** | Terminal actions require `COUNT = final+1`, `MIN = 0`, `MAX = final`. `0,1,3` cannot close at `3` (`TELEMETRY_PENDING` + exact gaps); data beyond the declared final is `FINAL_SEQUENCE_MISMATCH`. |
 | 4 | Production health/readiness checks | **DONE** | `GET /api/health`, plus the cron watchdog/retention heartbeats. |
@@ -57,6 +57,7 @@ npx wrangler d1 execute private-office-d1 --remote --file drizzle/0000_huge_bliz
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0001_durable_telemetry.sql
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
+npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
 npx wrangler d1 execute private-office-d1 --remote --command "SELECT version FROM schema_migrations ORDER BY version"
 
 # 3. Secrets / vars (Worker → Settings → Variables and Secrets)
@@ -66,7 +67,8 @@ npm run office:secret                              # prints secret + OFFICE_SETU
 # 4. Cloudflare Access protects owner/admin only:
 #    /office*  /api/office/*
 #    Agents use Private Office credentials, so leave /agent* and /api/agent/* reachable.
-#    Also public: /  /residences  /privacy  /gps-test  /visit/*  /api/client/*  /api/enquiries  /api/health
+#    Public bootstrap/support surfaces: /  /privacy  /gps-test  /visit/*  /api/client/*  /api/enquiries  /api/health
+#    Agent portfolio: /residences (Private Office session + fresh precise location required)
 
 # 5. Deploy (Workers Builds: build `npm run build:cloudflare`, deploy `npm run deploy:built`)
 
@@ -81,3 +83,7 @@ The deploy gate checks that the generated config contains the watchdog and reten
 **Authentication matrix:** contracted agent A signs in with issued Private Office credentials and sees only visits bound to agent A; another agent's `/api/agent/visit/<id>` returns 403. Cloudflare Access is reserved for owner/admin routes: a non-owner cannot use `/api/office/*` or evidence export.
 
 **Backups:** D1 Time Travel gives point-in-time restore (30 days on Workers Paid, 7 on Free) (`npx wrangler d1 time-travel restore private-office-d1 --timestamp=<ISO>`). For off-platform copies, schedule `npx wrangler d1 export private-office-d1 --remote --output=backup-$(date +%F).sql` from a trusted machine and store it encrypted. Rehearse a restore into a scratch database before go-live.
+
+## Agent access gate
+
+A valid username/password creates a session but does not grant portfolio access. The next route is `/agent/location`. The session unlocks only when the server receives a location fix with reported accuracy of 25 m or better. The proof expires after 60 seconds unless refreshed. Agent pages post presence about every 15 seconds and record path + dwell time + coordinates in `agent_page_activity`; stale or denied location returns the user to the location gate. `/agent/demo` and `/office/demo` are disabled for production access.

@@ -42,14 +42,14 @@ for(const path of ['/office','/api/office/visits']){
   }catch(e){fail(`${path} unreachable: ${e.message}`)}
 }
 console.log('\nAgent surface uses Private Office credentials');
-try{let r=await get('/agent');r.status===200?pass('/agent login page → 200'):fail(`/agent → ${r.status}`);r=await get('/api/agent');[401,403].includes(r.status)?pass(`/api/agent anonymous → ${r.status}`):fail(`/api/agent anonymous → ${r.status}`)}catch(e){fail('agent login boundary check failed: '+e.message)}
+try{let r=await get('/agent');r.status>=300&&r.status<400?pass(`/agent anonymous → ${r.status} login redirect`):fail(`/agent anonymous → ${r.status}`);r=await get('/agent/location');r.status>=300&&r.status<400?pass(`/agent/location anonymous → ${r.status} login redirect`):fail(`/agent/location anonymous → ${r.status}`);r=await get('/residences');r.status>=300&&r.status<400?pass(`/residences anonymous → ${r.status} gated`):fail(`/residences anonymous → ${r.status}`);r=await get('/api/agent');[401,403].includes(r.status)?pass(`/api/agent anonymous → ${r.status}`):fail(`/api/agent anonymous → ${r.status}`)}catch(e){fail('agent login boundary check failed: '+e.message)}
 try{
   const r=await get('/api/office/visits',{headers:{'oai-authenticated-user-id':'spoofed','oai-authenticated-user-email':'spoof@example.invalid','cf-access-jwt-assertion':'e30.e30.invalid'}});
   if(r.status===200)fail('Spoofed identity headers were accepted by /api/office/visits.');else pass(`Spoofed identity headers rejected (${r.status})`);
 }catch(e){fail('Header-spoofing check failed: '+e.message)}
 
 console.log('\nPublic surfaces must stay reachable');
-for(const path of ['/','/residences','/privacy','/gps-test']){try{const r=await get(path);r.status===200?pass(`${path} → 200`):fail(`${path} → ${r.status}`)}catch(e){fail(`${path}: ${e.message}`)}}
+for(const path of ['/','/privacy','/gps-test']){try{const r=await get(path);r.status===200?pass(`${path} → 200`):fail(`${path} → ${r.status}`)}catch(e){fail(`${path}: ${e.message}`)}}
 
 console.log('\nCapability links (gate #23)');
 const fakeId=crypto.randomUUID();

@@ -17,7 +17,7 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 
 1. Create D1 database `private-office-d1`.
 2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID. Without it the build fails.
-3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, then `drizzle/0003_agent_credentials.sql` to the remote database.
+3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, `drizzle/0003_agent_credentials.sql`, then `drizzle/0004_agent_presence_gate.sql` to the remote database.
 4. Run `npm run office:secret` and configure the printed `OFFICE_SETUP_HASH` as a runtime secret.
 5. Configure Cloudflare Access for `/office*` and `/api/office/*` only, then provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD`. Contracted agents use Private Office-issued credentials.
 6. Deploy from `main`.
@@ -28,7 +28,7 @@ Full checklist: `docs/GO_LIVE.md`.
 
 ## Agent security session
 
-After a contracted agent signs in with the Private Office credentials issued by the office, the workspace enrolls or reconnects a browser device identity and opens an auditable security session. The browser generates a P-256 signing key and stores the non-extractable signing key in its local IndexedDB record. Relevant workspace lifecycle, network and location-provider events are queued locally and sent as signed security-event batches.
+After a contracted agent signs in with the Private Office credentials issued by the office, Private Office immediately enters the location gate. Portfolio/dashboard access is blocked until the same session supplies a fresh device fix with reported accuracy <=25 m. The proof must remain fresher than 60 seconds. Once unlocked, the workspace enrolls or reconnects a browser device identity and opens the auditable security session. The browser generates a P-256 signing key and stores the non-extractable signing key in its local IndexedDB record. Relevant workspace lifecycle, network and location-provider events are queued locally and sent as signed security-event batches.
 
 If location permission has already been granted, the web prototype also records lower-frequency engaged-session location observations as security events while the agent workspace is active. The native shell is designed to start its native provider for the same engaged state.
 
@@ -67,3 +67,7 @@ Retention runs daily at 01:00 UTC (03:00 Africa/Harare) from the Cron Trigger. P
 ## Physical-device acceptance
 
 Before live use, test at least two actual phones across: permission grant/revocation, screen lock, app backgrounding, network loss/recovery, process restart, poor GNSS conditions, duplicate retry, terminal close while offline, restart epoch, office revocation, and client freshness/accuracy display. Record the raw reported accuracy and timestamps for each test case.
+
+## Agent presence and page-use audit
+
+While an unlocked agent session is visible, the browser keeps high-accuracy geolocation active and posts a presence heartbeat approximately every 15 seconds. Each accepted heartbeat updates the session's last coordinates, reported accuracy and current path, and appends an `agent_page_activity` row containing path, dwell interval and the location context for that interval. The office agent panel aggregates the last 24 hours by path. Permission loss, a fix worse than the access threshold, or a stale fix re-locks the agent environment. This is separate from the higher-detail visit telemetry epoch shown to the client.
