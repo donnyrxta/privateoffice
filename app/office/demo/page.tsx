@@ -1,2 +1,2 @@
-import OfficeWorkspace from '@/components/office-workspace';
-export default function Page(){return <OfficeWorkspace demo/>}
+import {redirect} from 'next/navigation';
+export default function Page(){redirect('/office')}

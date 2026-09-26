@@ -4,7 +4,7 @@
 //   npm run verify:production -- https://arrival.example.com --client-link 'https://arrival.example.com/visit/<id>#key=<token>'
 //
 // Runs anonymously: it proves what an unauthenticated visitor can and cannot reach. Authenticated checks
-// (agent A vs agent B, owner-only export) must be run manually with real Access identities — see docs/GO_LIVE.md.
+// (issued agent session A vs B, owner-only export) must be run with real test accounts — see docs/GO_LIVE.md.
 const args=process.argv.slice(2);
 const base=(args.find(a=>/^https?:\/\//.test(a)&&!a.includes('#key='))||'').replace(/\/$/,'');
 const clientLinkIdx=args.indexOf('--client-link');
@@ -31,8 +31,8 @@ try{
   if(b?.office==='awaiting_setup')warn('Office has not been bootstrapped yet (gate #5).');
 }catch(e){fail('/api/health unreachable: '+e.message)}
 
-console.log('\nAuthenticated surfaces must deny anonymous visitors (gate #4)');
-for(const path of ['/agent','/office','/api/agent','/api/agent/device','/api/office/visits']){
+console.log('\nOwner/admin surfaces must deny anonymous visitors (gate #4)');
+for(const path of ['/office','/api/office/visits']){
   try{
     const r=await get(path);const loc=r.headers.get('location')||'';
     if(r.status>=300&&r.status<400&&/cloudflareaccess\.com/i.test(loc))pass(`${path} → ${r.status} Cloudflare Access login`);
@@ -41,13 +41,15 @@ for(const path of ['/agent','/office','/api/agent','/api/agent/device','/api/off
     else fail(`${path} → ${r.status} for an anonymous visitor`);
   }catch(e){fail(`${path} unreachable: ${e.message}`)}
 }
+console.log('\nAgent surface uses Private Office credentials');
+try{let r=await get('/agent');r.status>=300&&r.status<400?pass(`/agent anonymous → ${r.status} login redirect`):fail(`/agent anonymous → ${r.status}`);r=await get('/agent/location');r.status>=300&&r.status<400?pass(`/agent/location anonymous → ${r.status} login redirect`):fail(`/agent/location anonymous → ${r.status}`);r=await get('/residences');r.status>=300&&r.status<400?pass(`/residences anonymous → ${r.status} gated`):fail(`/residences anonymous → ${r.status}`);r=await get('/api/agent');[401,403].includes(r.status)?pass(`/api/agent anonymous → ${r.status}`):fail(`/api/agent anonymous → ${r.status}`)}catch(e){fail('agent login boundary check failed: '+e.message)}
 try{
   const r=await get('/api/office/visits',{headers:{'oai-authenticated-user-id':'spoofed','oai-authenticated-user-email':'spoof@example.invalid','cf-access-jwt-assertion':'e30.e30.invalid'}});
   if(r.status===200)fail('Spoofed identity headers were accepted by /api/office/visits.');else pass(`Spoofed identity headers rejected (${r.status})`);
 }catch(e){fail('Header-spoofing check failed: '+e.message)}
 
 console.log('\nPublic surfaces must stay reachable');
-for(const path of ['/','/privacy']){try{const r=await get(path);r.status===200?pass(`${path} → 200`):fail(`${path} → ${r.status}`)}catch(e){fail(`${path}: ${e.message}`)}}
+for(const path of ['/','/privacy','/gps-test']){try{const r=await get(path);r.status===200?pass(`${path} → 200`):fail(`${path} → ${r.status}`)}catch(e){fail(`${path}: ${e.message}`)}}
 
 console.log('\nCapability links (gate #23)');
 const fakeId=crypto.randomUUID();

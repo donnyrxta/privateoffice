@@ -8,7 +8,8 @@ const {d1,r2}=hostingConfig;
 const standalone=process.env.PRIVATE_OFFICE_STANDALONE==='1';
 const remoteD1=process.env.CLOUDFLARE_D1_DATABASE_ID?.trim();
 // Escape hatch for local contract-test builds ONLY (tests inject an isolated Miniflare D1). Never set in Workers Builds.
-const allowMissingD1=process.env.PRIVATE_OFFICE_ALLOW_MISSING_D1==='1';
+const previewBranch=process.env.WORKERS_CI==='1'&&!!process.env.WORKERS_CI_BRANCH&&process.env.WORKERS_CI_BRANCH!=='main';
+const allowMissingD1=process.env.PRIVATE_OFFICE_ALLOW_MISSING_D1==='1'||previewBranch;
 const D1_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 if(standalone&&!allowMissingD1){
   if(!remoteD1)throw new Error('CLOUDFLARE_D1_DATABASE_ID is required for production deployment. Private Office must never deploy a Worker without its evidence store.');

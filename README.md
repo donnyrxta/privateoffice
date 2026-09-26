@@ -50,6 +50,8 @@ Apply the schema in order:
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0000_huge_blizzard.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0001_durable_telemetry.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
 
 ### Readiness
 
@@ -67,7 +69,7 @@ Configure:
     CF_ACCESS_TEAM_DOMAIN      https://<team>.cloudflareaccess.com
     CF_ACCESS_AUD              Cloudflare Access application AUD tag
 
-Protect /agent*, /office*, /api/agent* and /api/office* with Cloudflare Access. Standalone builds refuse the legacy injected-header identity path and require a valid Access JWT. The application validates JWT signature, issuer, audience and expiry against the team JWKS before trusting the agent/office identity.
+Protect /office* and /api/office* with Cloudflare Access. Contracted agents sign in at /agent using Private Office-issued credentials backed by D1 HttpOnly sessions; /agent* and /api/agent* must remain reachable so app-level authentication can run. The office validates Cloudflare Access JWT signature, issuer, audience and expiry against the team JWKS before trusting owner/admin identity.
 
 ## Development
 
@@ -91,9 +93,9 @@ See native/README.md. The native shell intentionally does not use Capgo's best-e
 
 ## Main routes
 
-- / — Private Office property-first landing and enquiry
-- /residences — private off-plan property selection and featured residence
-- /agent — authenticated agent workspace and telemetry health
+- / — premium contracted-agent login; no portfolio content before authentication
+- /residences — authenticated agent portfolio; requires a fresh precise session location
+- /agent — Private Office credential login and assigned-visit workspace
 - /office — owner workspace, visit history and security activity
 - /visit/[id] — private client arrival view
 - /privacy — platform tracking/data notice
@@ -107,3 +109,7 @@ The connected Canva library was inspected and the original Private Office source
 ## Verification
 
 See docs/VERIFICATION.md, docs/OPERATIONS.md and docs/GO_LIVE.md.
+
+### Contracted-agent access invariant
+
+Agent credentials authenticate identity but do not unlock the portfolio. After login, `/agent/location` must persist a device fix with reported accuracy <=25 m. Agent APIs, `/agent`, and `/residences` require that precise fix to remain fresher than 60 seconds. The browser refreshes presence approximately every 15 seconds while the workspace is in use. Presence rows also record the current path and dwell interval so the office can review where an agent was working and what areas of Private Office they used. Loss of permission, stale location, or insufficient accuracy re-locks the session.

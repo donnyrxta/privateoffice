@@ -1,5 +1,6 @@
-import {getChatGPTUser} from '@/app/chatgpt-auth';
+import {redirect} from 'next/navigation';
+import {getAgentSession,hasFreshPreciseLocation} from '@/lib/agent-auth';
 import AgentWorkspace from '@/components/agent-workspace';
-import SignInPanel from '@/components/sign-in-panel';
+import AgentPresenceGuard from '@/components/agent-presence-guard';
 export const dynamic='force-dynamic';
-export default async function Page(){const user=await getChatGPTUser();return user?<AgentWorkspace/>:<SignInPanel kind="agent"/>}
+export default async function Page(){const session=await getAgentSession();if(!session)redirect('/');if(!hasFreshPreciseLocation(session))redirect('/agent/location');return <><AgentPresenceGuard/><AgentWorkspace/></>}
