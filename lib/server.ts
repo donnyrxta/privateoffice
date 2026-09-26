@@ -1,6 +1,6 @@
 import {env} from 'cloudflare:workers';
 import {getChatGPTUser} from '@/app/chatgpt-auth';
-import {getAgentUser} from './agent-auth';
+import {getAgentSession,hasFreshPreciseLocation} from './agent-auth';
 import {retentionIfOverdue} from './maintenance';
 import {evaluateHealth,isSharing,sequenceStatus} from './integrity';
 import {canonicalJson,fromBase64url,qualityFromAccuracy} from './telemetry/shared';
@@ -17,7 +17,7 @@ export function num(v:unknown,min:number,max:number){if(typeof v!=='number'||!Nu
 export function optionalNum(v:unknown,min:number,max:number){if(v===null||v===undefined)return null;return num(v,min,max)}
 export async function hash(s:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('')}
 export function token(){const a=crypto.getRandomValues(new Uint8Array(32));return [...a].map(b=>b.toString(16).padStart(2,'0')).join('')}
-export async function user(){const a=await getAgentUser();if(a)return a;const u=await getChatGPTUser();if(!u)throw new HttpError(401,'Please sign in to continue.');return u}
+export async function user(){const s=await getAgentSession();if(s){if(!hasFreshPreciseLocation(s))throw new HttpError(428,'A fresh precise location is required before using Private Office.','LOCATION_REQUIRED');return s.user}const u=await getChatGPTUser();if(!u)throw new HttpError(401,'Please sign in to continue.');return u}
 export async function officeUser(){const u=await getChatGPTUser();if(!u)throw new HttpError(401,'Please sign in to the Private Office.');return u}
 export async function owner(){const u=await officeUser();const o=await db().prepare('SELECT owner_id FROM office WHERE id=1').first<{owner_id:string}>();if(!o||o.owner_id!==u.userId)throw new HttpError(403,'Only the office owner can access this.');return u}
 export async function rate(key:string,limit:number,window=60000){const n=Date.now(),bucket=Math.floor(n/window),k=key+':'+bucket;const r=await db().prepare('INSERT INTO rate_limits (key,count,expires_at) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').bind(k,n+window).first<{count:number}>();if(!r||r.count>limit)throw new HttpError(429,'Too many requests. Please try again shortly.');}

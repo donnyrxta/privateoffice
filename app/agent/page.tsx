@@ -1,5 +1,5 @@
-import {getAgentUser} from '@/lib/agent-auth';
+import {redirect} from 'next/navigation';
+import {getAgentSession,hasFreshPreciseLocation} from '@/lib/agent-auth';
 import AgentWorkspace from '@/components/agent-workspace';
-import SignInPanel from '@/components/sign-in-panel';
 export const dynamic='force-dynamic';
-export default async function Page(){const user=await getAgentUser();return user?<AgentWorkspace/>:<SignInPanel kind="agent"/>}
+export default async function Page(){const session=await getAgentSession();if(!session)redirect('/');if(!hasFreshPreciseLocation(session))redirect('/agent/location');return <AgentWorkspace/>}
