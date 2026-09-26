@@ -3,7 +3,18 @@ import {generateAgentPassword,normalizeAgentUsername,passwordRecord} from '@/lib
 
 function email(value:unknown){const v=str(value,160).toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))throw new HttpError(400,'Enter a valid agent email address.');return v}
 
-export async function GET(){return wrap(async()=>{await owner();const rows=await db().prepare('SELECT id,username,email,full_name,active,created_at,last_login_at FROM agent_accounts ORDER BY active DESC,full_name ASC').all();return json({agents:rows.results})})}
+export async function GET(){return wrap(async()=>{await owner();const since=Date.now()-24*60*60*1000;
+const rows=await db().prepare(`SELECT a.id,a.username,a.email,a.full_name,a.active,a.created_at,a.last_login_at,
+  (SELECT s.last_seen_at FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS session_last_seen_at,
+  (SELECT s.last_lat FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS last_lat,
+  (SELECT s.last_lng FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS last_lng,
+  (SELECT s.last_accuracy FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS last_accuracy,
+  (SELECT s.last_location_at FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS last_location_at,
+  (SELECT s.current_path FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS current_path
+  FROM agent_accounts a ORDER BY a.active DESC,a.full_name ASC`).all<any>();
+const activity=await db().prepare('SELECT agent_id,path,SUM(duration_ms) AS duration_ms,MAX(at) AS last_at FROM agent_page_activity WHERE at>=? GROUP BY agent_id,path ORDER BY agent_id,duration_ms DESC').bind(since).all<any>();
+const byAgent=new Map<string,any[]>();for(const row of activity.results){const list=byAgent.get(row.agent_id)||[];list.push({path:row.path,duration_ms:Number(row.duration_ms||0),last_at:Number(row.last_at||0)});byAgent.set(row.agent_id,list)}
+return json({agents:rows.results.map((a:any)=>({...a,activity_24h:(byAgent.get(a.id)||[]).slice(0,8)}))})})}
 
 export async function POST(req:Request){return wrap(async()=>{
   const u=await owner(),b=await body(req);await rate('office-agents:'+u.userId,30,3600000);

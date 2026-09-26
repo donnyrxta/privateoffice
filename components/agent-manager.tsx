@@ -2,9 +2,9 @@
 import {FormEvent,useEffect,useState} from 'react';
 import {Copy,KeyRound,Plus,RefreshCw} from 'lucide-react';
 import {Input} from '@/components/ui/input';
-import {api,post} from '@/lib/client';
+import {api,post,age} from '@/lib/client';
 
-type Agent={id:string;username:string;email:string;full_name:string;active:number;created_at:number;last_login_at:number|null};
+type Agent={id:string;username:string;email:string;full_name:string;active:number;created_at:number;last_login_at:number|null;session_last_seen_at?:number|null;last_lat?:number|null;last_lng?:number|null;last_accuracy?:number|null;last_location_at?:number|null;current_path?:string|null;activity_24h?:{path:string;duration_ms:number;last_at:number}[]};
 
 export default function AgentManager(){
   const[agents,setAgents]=useState<Agent[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[issued,setIssued]=useState<{username:string;password:string;name:string}|null>(null),[busy,setBusy]=useState(false);
@@ -23,6 +23,6 @@ export default function AgentManager(){
       <label>Email<Input type="email" name="email" required maxLength={160}/></label>
       <button className="button" disabled={busy}><Plus size={17}/>{busy?'Creating…':'Create agent login'}</button>
     </form>
-    <div className="agent-account-list section-gap">{loading?<p className="muted">Loading agents…</p>:agents.length?agents.map(a=><div className="agent-account-row" key={a.id}><div><strong>{a.full_name}</strong><span>@{a.username} · {a.email}</span></div><div><small>{a.last_login_at?'Has signed in':'Not signed in yet'}</small><button className="text-link" onClick={()=>reset(a)} disabled={busy}><KeyRound size={15}/>Reset password</button></div></div>):<p className="muted">No contracted agents have been added yet.</p>}</div>
+    <div className="agent-account-list section-gap">{loading?<p className="muted">Loading agents…</p>:agents.length?agents.map(a=><div className="agent-account-row agent-account-row-rich" key={a.id}><div><strong>{a.full_name}</strong><span>@{a.username} · {a.email}</span>{a.last_location_at&&a.last_lat!=null&&a.last_lng!=null?<small className="agent-location-line">{a.last_lat.toFixed(5)}, {a.last_lng.toFixed(5)} · ±{Math.round(a.last_accuracy||0)} m · {age(a.last_location_at)}</small>:<small>No verified location yet</small>}</div><div className="agent-activity-summary"><small>{a.current_path?'Current: '+(a.current_path==='/residences'?'Portfolio':a.current_path==='/agent'?'My visits':a.current_path):a.last_login_at?'Signed in previously':'Not signed in yet'}</small>{a.activity_24h?.slice(0,3).map(x=><span key={x.path}>{x.path==='/residences'?'Portfolio':x.path==='/agent'?'My visits':x.path} · {Math.max(1,Math.round(x.duration_ms/60000))} min / 24h</span>)}<button className="text-link" onClick={()=>reset(a)} disabled={busy}><KeyRound size={15}/>Reset password</button></div></div>):<p className="muted">No contracted agents have been added yet.</p>}</div>
   </section>
 }
