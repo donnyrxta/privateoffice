@@ -16,14 +16,23 @@ export default function ResidenceGallery({media,project,residence}:{media:Portfo
   function previous(){setActive(current=>current===null?null:(current-1+media.length)%media.length)}
   function next(){setActive(current=>current===null?null:(current+1)%media.length)}
 
+  const viewerOpen=active!==null;
+
   useEffect(()=>{
-    if(active===null)return;
+    if(!viewerOpen)return;
     const previousOverflow=document.body.style.overflow;
     document.body.style.overflow='hidden';
     const onKey=(event:KeyboardEvent)=>{
       if(event.key==='Escape'){event.preventDefault();close()}
       if(event.key==='ArrowLeft'){event.preventDefault();previous()}
       if(event.key==='ArrowRight'){event.preventDefault();next()}
+      if(event.key==='Tab'){
+        const controls=[...document.querySelectorAll<HTMLButtonElement>('.po-media-viewer button:not(:disabled)')];
+        if(!controls.length)return;
+        const first=controls[0],last=controls[controls.length-1];
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+      }
     };
     addEventListener('keydown',onKey);
     requestAnimationFrame(()=>closeRef.current?.focus());
@@ -32,7 +41,7 @@ export default function ResidenceGallery({media,project,residence}:{media:Portfo
       removeEventListener('keydown',onKey);
       requestAnimationFrame(()=>opener.current?.focus());
     };
-  },[active]);
+  },[viewerOpen]);
 
   return <>
     <section className="po-gallery" id="gallery" aria-label={residence+' gallery'}>
@@ -47,7 +56,7 @@ export default function ResidenceGallery({media,project,residence}:{media:Portfo
 
     {active!==null&&<div className="po-media-viewer" role="dialog" aria-modal="true" aria-label={residence+' architectural image viewer'} onMouseDown={event=>{if(event.target===event.currentTarget)close()}}>
       <header className="po-media-viewer-head">
-        <div><span>{String(active+1).padStart(2,'0')} / {String(media.length).padStart(2,'0')}</span><strong>{media[active].label??'Architecture'}</strong></div>
+        <div aria-live="polite"><span>{String(active+1).padStart(2,'0')} / {String(media.length).padStart(2,'0')}</span><strong>{media[active].label??'Architecture'}</strong></div>
         <button ref={closeRef} type="button" onClick={close} aria-label="Close image viewer">Close <span aria-hidden="true">×</span></button>
       </header>
       <div className="po-media-viewer-stage">
