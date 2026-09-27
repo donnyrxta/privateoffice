@@ -10,11 +10,23 @@ const rows=await db().prepare(`SELECT a.id,a.username,a.email,a.full_name,a.acti
   (SELECT s.last_lng FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS last_lng,
   (SELECT s.last_accuracy FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS last_accuracy,
   (SELECT s.last_location_at FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS last_location_at,
-  (SELECT s.current_path FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS current_path
+  (SELECT s.current_path FROM agent_web_sessions s WHERE s.agent_id=a.id ORDER BY s.last_seen_at DESC LIMIT 1) AS current_path,
+  (SELECT ap.years_experience FROM agent_applications ap WHERE ap.approved_agent_id=a.id AND ap.status='approved' ORDER BY ap.reviewed_at DESC LIMIT 1) AS profile_years_experience,
+  (SELECT ap.markets_json FROM agent_applications ap WHERE ap.approved_agent_id=a.id AND ap.status='approved' ORDER BY ap.reviewed_at DESC LIMIT 1) AS profile_markets_json,
+  (SELECT ap.specialisms_json FROM agent_applications ap WHERE ap.approved_agent_id=a.id AND ap.status='approved' ORDER BY ap.reviewed_at DESC LIMIT 1) AS profile_specialisms_json,
+  (SELECT ap.languages_json FROM agent_applications ap WHERE ap.approved_agent_id=a.id AND ap.status='approved' ORDER BY ap.reviewed_at DESC LIMIT 1) AS profile_languages_json,
+  (SELECT ap.experience_summary FROM agent_applications ap WHERE ap.approved_agent_id=a.id AND ap.status='approved' ORDER BY ap.reviewed_at DESC LIMIT 1) AS profile_experience_summary,
+  (SELECT ss.classification_json FROM agent_applications ap JOIN agent_screening_sessions ss ON ss.application_id=ap.id WHERE ap.approved_agent_id=a.id AND ap.status='approved' ORDER BY ap.reviewed_at DESC LIMIT 1) AS profile_classification_json
   FROM agent_accounts a ORDER BY a.active DESC,a.full_name ASC`).all<any>();
 const activity=await db().prepare('SELECT agent_id,path,SUM(duration_ms) AS duration_ms,MAX(at) AS last_at FROM agent_page_activity WHERE at>=? GROUP BY agent_id,path ORDER BY agent_id,duration_ms DESC').bind(since).all<any>();
 const byAgent=new Map<string,any[]>();for(const row of activity.results){const list=byAgent.get(row.agent_id)||[];list.push({path:row.path,duration_ms:Number(row.duration_ms||0),last_at:Number(row.last_at||0)});byAgent.set(row.agent_id,list)}
-return json({agents:rows.results.map((a:any)=>({...a,activity_24h:(byAgent.get(a.id)||[]).slice(0,8)}))})})}
+function parsed(raw:any,fallback:any){try{return raw?JSON.parse(raw):fallback}catch{return fallback}}
+return json({agents:rows.results.map((a:any)=>{
+  const classification=parsed(a.profile_classification_json,null);
+  const profile=a.profile_classification_json?{source:'screening',years_experience:a.profile_years_experience==null?null:Number(a.profile_years_experience),markets:parsed(a.profile_markets_json,[]),specialisms:parsed(a.profile_specialisms_json,[]),languages:parsed(a.profile_languages_json,[]),experience_summary:a.profile_experience_summary??null,classification}:null;
+  const {profile_markets_json,profile_specialisms_json,profile_languages_json,profile_experience_summary,profile_classification_json,profile_years_experience,...safe}=a;
+  return {...safe,profile,activity_24h:(byAgent.get(a.id)||[]).slice(0,8)}
+})})})}
 
 export async function POST(req:Request){return wrap(async()=>{
   const u=await owner(),b=await body(req);await rate('office-agents:'+u.userId,30,3600000);
