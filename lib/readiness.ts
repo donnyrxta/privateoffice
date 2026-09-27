@@ -3,8 +3,9 @@ import {getOps} from './maintenance';
 
 type RuntimeEnv={DB?:D1Database;OFFICE_SETUP_HASH?:string;CF_ACCESS_TEAM_DOMAIN?:string;CF_ACCESS_AUD?:string;PRIVATE_OFFICE_STANDALONE?:string};
 
-export const REQUIRED_TABLES=['office','enquiries','visits','points','events','rate_limits','devices','agent_sessions','security_events','observation_rejections','schema_migrations','ops_state','agent_accounts','agent_web_sessions','agent_page_activity','agent_onboarding_invites','agent_applications','agent_screening_sessions'] as const;
+export const REQUIRED_TABLES=['office','enquiries','visits','points','events','rate_limits','devices','agent_sessions','security_events','observation_rejections','schema_migrations','ops_state','agent_accounts','agent_web_sessions','agent_page_activity','agent_onboarding','agent_review_events','agent_onboarding_invites','agent_applications','agent_screening_sessions'] as const;
 export const REQUIRED_COLUMNS:Record<string,string[]>={
+  agent_onboarding:['status','data_json','revision','feedback','classification','review_json'],
   visits:['active_device_id','last_sequence','tracking_health','missing_observations','health_reason','health_evaluated_at'],
   points:['device_id','share_epoch','sequence_number','altitude','altitude_accuracy','heading','speed','simulated','queued_at','quality_class','plausibility_state','payload_hash','integrity_flags'],
   observation_rejections:['visit_id','share_epoch','sequence_number','code','raw_payload','payload_hash'],

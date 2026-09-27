@@ -1,90 +1,38 @@
-# Private Office go-live gates
+# Website release gates
 
-Status legend: **DONE** = implemented and covered by `npm run test:api` · **OPERATOR** = needs your Cloudflare account / a person · **OPEN** = engineering work not yet done · **FIELD** = can only be proven on physical devices.
+This runbook supersedes the earlier always-on presence/native-app launch checklist. Code implementation and local tests do not establish production configuration.
 
-## The eight true blockers
+## Required production setup
 
-| # | Blocker | Status | How it is enforced / what remains |
-|---|---------|--------|-----------------------------------|
-| 1 | Production D1 bound and migrated | Code **DONE**, binding **OPERATOR** | Build fails without a valid `CLOUDFLARE_D1_DATABASE_ID`; `deploy:built` refuses a config without `DB`; `/api/health` returns 503 until schema `0005_agent_onboarding_screening` and all enriched columns exist. |
-| 2 | Cloudflare Access + runtime secrets | Code **DONE**, config **OPERATOR** | `/api/health` reports `access: missing` → 503 in standalone builds. `npm run office:secret` generates the bootstrap secret; `npm run verify:production` checks the anonymous side of the Access boundary. |
-| 3 | Contiguous-sequence terminal validation | **DONE** | Terminal actions require `COUNT = final+1`, `MIN = 0`, `MAX = final`. `0,1,3` cannot close at `3` (`TELEMETRY_PENDING` + exact gaps); data beyond the declared final is `FINAL_SEQUENCE_MISMATCH`. |
-| 4 | Production health/readiness checks | **DONE** | `GET /api/health`, plus the cron watchdog/retention heartbeats. |
-| 5 | Native Android/iOS location app | **OPEN / FIELD** | `native/` holds the Capacitor 8 architecture only. Platform projects, permissions, the foreground service, and the Fast SQL / uploader / recovery wiring are not built yet. |
-| 6 | Native SQLite queue + protected device keys | **OPEN** | Keystore/Keychain non-exportable P-256 keys, and native SQLite for observations, security events, terminal actions, sequence counters and installation metadata. |
-| 7 | Play Integrity / App Attest + enrollment | **OPEN / OPERATOR** | Needs Google Play Console and Apple Developer accounts. The Worker will need an attestation verification step on device enrollment. |
-| 8 | Physical-device failure/recovery matrix | **FIELD** | See `OPERATIONS.md` → Physical-device acceptance. |
+1. Keep the existing D1 database; do not create a replacement for an existing deployment. Confirm binding `DB` and the real `CLOUDFLARE_D1_DATABASE_ID` build variable.
+2. Apply missing migrations in order, once each: 0000 through 0004, then `drizzle/0006_agent_interviews.sql`. Back up first. Existing credential accounts must complete onboarding and human review before their next visit.
+3. Protect `/office*` and `/api/office/*` with Cloudflare Access; set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`. Leave public property routes and credential sign-in reachable.
+4. Bootstrap the office only if not already configured, using `OFFICE_SETUP_HASH` and the existing setup flow. Never re-bootstrap a working office.
+5. Build with `npm run build:cloudflare`; deploy with `npm run deploy:built`. A test build without D1 must not be deployed.
+6. Verify `/api/health`: current schema, configured Access, office state and cron heartbeats. Run `npm run verify:production -- https://<domain>`.
 
-## All gates
-
-| # | Gate | Status |
-|---|------|--------|
-| 1 | Bind production D1 | OPERATOR (steps below) |
-| 2 | `/api/health` readiness | DONE |
-| 3 | Missing D1 fails the build | DONE (build + deploy gate) |
-| 4 | Cloudflare Access | OPERATOR. App-level matrix covered by tests (wrong agent, wrong/other/expired/revoked client token). |
-| 5 | `OFFICE_SETUP_HASH` | OPERATOR (`npm run office:secret`) |
-| 6 | Contiguous terminal rule | DONE |
-| 7 | `SEQUENCE_GAP` health | DONE: office sees "TRACKING DEGRADED · 1 observation missing" and the missing sequence numbers |
-| 8 | Native application | OPEN |
-| 9 | Native SQLite outbox | OPEN |
-| 10 | Native key storage | OPEN |
-| 11 | Attestation | OPEN |
-| 12 | Spoofing signals | DONE server-side: `simulated_location`, `implausible_speed`, `timestamp_anomaly` stored per fix as `integrity_flags`; sequence gaps at visit level. Invalid fixes are persisted in `observation_rejections` with raw payload and reason, never silently dropped. |
-| 13 | Route-aware ETA | OPEN: needs a routing provider account/key |
-| 14 | Production tile provider | OPEN: needs a provider account/key (currently `tile.openstreetmap.org`) |
-| 15 | Real agent profiles | PARTIAL: invitation-based onboarding, professional profile, versioned screening, descriptive expertise classification, human approval, D1 accounts, issued credentials, name/email and direct assignment are implemented; photo/vehicle fields remain open. |
-| 16 | Arrival challenge code | OPEN |
-| 17 | Scheduled retention | DONE: Cron `0 1 * * *` (03:00 Harare). The office dashboard runs retention only if the scheduler is >26 h overdue. |
-| 18 | Operational logging | PARTIAL: structured JSON logs (`active_visit_unhealthy`, `terminal_refused`, `retention_completed`, `scheduled_failed`, …) for Workers Observability. Alert routing is OPERATOR. |
-| 19 | Active-visit watchdog | DONE: Cron every minute. 0–15 s healthy · 15–45 s delayed · 45–90 s stale · >90 s interrupted (`HEALTH_THRESHOLDS` in `lib/contracts.ts`; tune from field tests). Transitions are written to the visit audit trail. |
-| 20 | Physical-device testing | FIELD |
-| 21 | Cadence tuning | FIELD |
-| 22 | Production domain | OPERATOR. `verify:production` warns on `workers.dev`. |
-| 23 | Capability links | DONE structurally; `verify:production --client-link` validates a live link |
-| 24 | Backups / evidence export | Export DONE (`GET /api/office/visit/:id/export`, owner-only, SHA-256 digest, logged as `evidence_exported`). Backups OPERATOR: D1 Time Travel restore + scheduled `wrangler d1 export`. |
-| 25 | Live rehearsal | FIELD |
-
-## Operator runbook
+For an already-migrated deployment, the new database command is:
 
 ```bash
-# 1. Database
-npx wrangler d1 create private-office-d1          # copy the database_id
-# Workers Builds → Settings → Build variables: CLOUDFLARE_D1_DATABASE_ID=<id>
-
-# 2. Schema — in order, once each (ALTER TABLE statements are not re-runnable)
-npx wrangler d1 execute private-office-d1 --remote --file drizzle/0000_huge_blizzard.sql
-npx wrangler d1 execute private-office-d1 --remote --file drizzle/0001_durable_telemetry.sql
-npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
-npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
-npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
-npx wrangler d1 execute private-office-d1 --remote --file drizzle/0005_agent_onboarding_screening.sql
-npx wrangler d1 execute private-office-d1 --remote --command "SELECT version FROM schema_migrations ORDER BY version"
-
-# 3. Secrets / vars (Worker → Settings → Variables and Secrets)
-npm run office:secret                              # prints secret + OFFICE_SETUP_HASH
-#    OFFICE_SETUP_HASH, CF_ACCESS_TEAM_DOMAIN, CF_ACCESS_AUD
-
-# 4. Cloudflare Access protects owner/admin only:
-#    /office*  /api/office/*
-#    Agents use Private Office credentials, so leave /agent* and /api/agent/* reachable.
-#    Public bootstrap/support surfaces: /  /privacy  /gps-test  /visit/*  /api/client/*  /api/enquiries  /api/health
-#    Agent portfolio: /residences (Private Office session + fresh precise location required)
-
-# 5. Deploy (Workers Builds: build `npm run build:cloudflare`, deploy `npm run deploy:built`)
-
-# 6. Verify
-curl -s https://<domain>/api/health | jq
-npm run verify:production -- https://<domain>
-npm run verify:production -- https://<domain> --client-link 'https://<domain>/visit/<id>#key=<token>'
+npx wrangler d1 execute private-office-d1 --remote --file drizzle/0006_agent_interviews.sql
 ```
 
-The deploy gate checks that the generated config contains the watchdog and retention Cron Triggers. After the first minute, `/api/health` should report `scheduler.watchdog: running`.
+## Acceptance rehearsal
 
-**Authentication matrix:** contracted agent A signs in with issued Private Office credentials and sees only visits bound to agent A; another agent's `/api/agent/visit/<id>` returns 403. Cloudflare Access is reserved for owner/admin routes: a non-owner cannot use `/api/office/*` or evidence export.
+- Buyer: public homepage → residences → detail → qualified enquiry → persisted receipt visible to office.
+- New invited agent: issued login → saved profile and all five interview stages → submit → pending review. Reload must retain progress; visits must remain unavailable.
+- Reviewer: owner signs in → agent review → evidence and rubric → recorded human approval or changes requested. A different identity must not gain review access.
+- Approved agent: assigned visit → explicit consent/start → browser permission → coordinate, reported accuracy and freshness → pause/arrive/complete. Denied permission must provide retry/manual coordination; no location request on ordinary browsing.
+- Hide/leave the visit page: acquisition stops. Returning requires an explicit start. Offline final sync is visibly pending, never falsely confirmed.
+- Client: only the correct private link sees the appointment's latest persisted shared position. No full device identifiers or office history.
 
-**Backups:** D1 Time Travel gives point-in-time restore (30 days on Workers Paid, 7 on Free) (`npx wrangler d1 time-travel restore private-office-d1 --timestamp=<ISO>`). For off-platform copies, schedule `npx wrangler d1 export private-office-d1 --remote --output=backup-$(date +%F).sql` from a trusted machine and store it encrypted. Rehearse a restore into a scratch database before go-live.
+## Physical-device check
 
-## Agent access gate
+Use HTTPS on an actual Android phone. Test permission grant and denial, poor indoor fix, timeout, offline/reconnect, tab background, screen lock, reload, pause and end. Automated synthetic coordinates verify behavior, not actual GNSS accuracy. Do not promise exact coordinates or continuous background tracking.
 
-A valid username/password creates a session but does not grant portfolio access. The next route is `/agent/location`. The session unlocks only when the server receives a location fix with reported accuracy of 25 m or better. The proof expires after 60 seconds unless refreshed. Agent pages post presence about every 15 seconds and record path + dwell time + coordinates in `agent_page_activity`; stale or denied location returns the user to the location gate. `/agent/demo` and `/office/demo` are disabled for production access.
+## Operations
+
+Watchdog runs every minute; retention runs daily at 03:00 Harare. Current policy retains visit evidence 30 days and enquiries 90 days. D1 backup/restore, production access, domain and real-phone rehearsal require operational verification. An unshipped native app, route-aware ETA, attestation and vehicle profiles are separate future work, not claimed deliverables of this website change.
+
+
+Integration with concurrent main updates: preserve migration `0005_agent_onboarding_screening.sql` and apply it before `0006_agent_interviews.sql`. Optional invitation-link screening is pre-credential intake; the contracted agent then completes the first-login professional interview for visit activation. Public residences never require GPS.

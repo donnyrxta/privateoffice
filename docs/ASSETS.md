@@ -43,6 +43,10 @@ Project facts in `lib/portfolio.ts` are source-dated and intentionally exclude p
 
 The presence of project media in Canva or this repository is not evidence of current unit availability, commercial terms, a sales mandate or developer affiliation.
 
+## 27 September 2026 restoration
+
+Recovered the original 2000 × 1171 JPEG from the existing local project at `property-private-office/public/assets/villa-exterior.jpg`. Generated `villa-hero-{720,1280,2000}.webp` at quality 90, without upscaling; homepage and Diamante/project heroes now use local responsive sources. This removes the external-CDN dependency for the primary image. Other gallery views retain their source-matched official CDN URLs; no thumbnail or unrelated image is substituted. Homepage composition restored from commit `8b4760a`, with the current public property / private agent workflow required by the user.
+
 
 ## Canva portfolio asset registry
 

@@ -13,5 +13,5 @@ export default async function Page(){
   const owner=await d1.prepare('SELECT owner_id,owner_email FROM office WHERE id=1').first<{owner_id:string;owner_email:string}>();
   if(!owner)return <OfficeAccessPanel mode="setup" email={user.email}/>;
   if(owner.owner_id!==user.userId)return <OfficeAccessPanel mode="denied" email={user.email}/>;
-  return <OfficeWorkspace/>;
+  return <><div className="app-main" style={{paddingBottom:0}}><a className="text-link" href="/office/reviews">Review agent introductions →</a></div><OfficeWorkspace/></>;
 }

@@ -1,3 +1,5 @@
+> Current access correction (27 September 2026): portfolio pages are public. Agent sign-in is `/agent/sign-in`; first-login interviews and human approval precede visits. Presence-gate descriptions and re-lock states below are historical and superseded by AGENTS.md. Retain the property/media ontology and architectural viewer composition.
+
 # Private Office — Portfolio Ontology
 
 > Status: normative information architecture. This document describes what the property experience *is*, how its entities relate, and which facts may appear on which surfaces. It is subordinate to `PORTFOLIO_DESIGN_SYSTEM.md` and the access/location invariants.

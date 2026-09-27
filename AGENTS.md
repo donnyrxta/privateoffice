@@ -27,10 +27,13 @@ Do not redesign from memory or from a generic component-library default.
 
 ## Product/access invariants
 
-- `/` is the contracted-agent entry surface.
-- Portfolio content is protected until agent authentication and the fresh precise-location gate succeed.
-- `/residences` and other portfolio surfaces must not leak protected content before that gate.
-- Do not turn GPS/telemetry into the public/product proposition.
+- The current approved brief (27 September 2026) supersedes the former location-before-content model.
+- `/` is the public, property-led introduction; residences and enquiry pages are public.
+- Agent operations require office-issued credentials. No public self-registration or automatic agent approval.
+- First-time agents complete saved screening; an authorized human reviewer records expertise and activation.
+- Request location only after an approved agent explicitly starts/resumes an assigned visit with informed consent.
+- Stop browser acquisition on pause, arrival, completion, backgrounding and leaving the visit workspace. Resume requires an explicit action.
+- Never use GPS to gate the public portfolio or market telemetry as the product.
 - Do not invent prices, availability, yield, scarcity, partnerships, testimonials or developer claims.
 
 ## Implementation discipline

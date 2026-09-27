@@ -1,29 +1,24 @@
-import {notFound,redirect} from 'next/navigation';
-import AgentPresenceGuard from '@/components/agent-presence-guard';
+import Link from 'next/link';
+import {notFound} from 'next/navigation';
 import PortfolioHeader from '@/components/portfolio-header';
 import PortfolioMotion from '@/components/portfolio-motion';
 import ResidenceGallery from '@/components/residence-gallery';
-import {getAgentSession,hasFreshPreciseLocation} from '@/lib/agent-auth';
 import {getResidence,tierraViva} from '@/lib/portfolio';
 
 export const dynamic='force-dynamic';
 
 export default async function Page({params}:{params:Promise<{residence:string}>}){
-  const session=await getAgentSession();
-  if(!session)redirect('/');
-  if(!hasFreshPreciseLocation(session))redirect('/agent/location');
   const {residence:slug}=await params;
   const residence=getResidence(slug);
   if(!residence)notFound();
 
   const media=[residence.hero,...residence.gallery];
   return <div className="po-residence-detail">
-    <AgentPresenceGuard/>
     <PortfolioMotion/>
     <PortfolioHeader/>
     <main>
       <section className="po-residence-hero">
-        <img src={residence.hero.src} alt={residence.hero.alt} style={{objectPosition:residence.hero.focal}} fetchPriority="high" data-po-parallax=".04"/>
+        <img src={residence.hero.src} srcSet={residence.hero.srcSet} sizes="100vw" alt={residence.hero.alt} style={{objectPosition:residence.hero.focal}} fetchPriority="high" data-po-parallax=".04"/>
         <div className="po-residence-hero-shade"/>
         <div className="po-residence-title" data-po-reveal>
           <p className="po-kicker">TIERRA VIVA · {tierraViva.location.toUpperCase()}</p>
@@ -34,7 +29,7 @@ export default async function Page({params}:{params:Promise<{residence:string}>}
           <strong>{residence.name}</strong>
           <p>{residence.bedrooms}</p>
           <div><span>COMMERCIAL STATE</span><b>Confirmation required</b></div>
-          <a href="#gallery">View architecture ↓</a>
+          <Link href="#gallery">View architecture ↓</Link>
         </aside>
       </section>
 
@@ -53,15 +48,15 @@ export default async function Page({params}:{params:Promise<{residence:string}>}
 
       <section className="po-residence-truth" data-po-reveal>
         <div>
-          <p className="po-kicker">AGENT NOTE</p>
-          <h2>Beautiful material is not the same thing as live inventory.</h2>
+          <p className="po-kicker">PRIVATE ENQUIRY</p>
+          <h2>Begin with the residence.<br/>Make it your conversation.</h2>
         </div>
-        <p>Use this page to understand and present the residence type. Before discussing price, availability, incentives, payment plans or delivery commitments, confirm the current transaction brief with the office.</p>
+        <p>Discuss this residence with our office. We will help clarify the current availability, commercial terms and next steps for your requirements. All images are architectural impressions; this illustrative collection does not confirm a current sales mandate.</p>
       </section>
 
       <section className="po-project-exit">
-        <a href="/residences/tierra-viva">← Tierra Viva</a>
-        <a href="/agent">Open client visits →</a>
+        <Link href="/residences/tierra-viva">← Tierra Viva</Link>
+        <Link href={"/?enquire="+encodeURIComponent("Tierra Viva · "+residence.name)}>Request a private presentation →</Link>
       </section>
     </main>
   </div>

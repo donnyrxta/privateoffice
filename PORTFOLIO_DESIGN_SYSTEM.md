@@ -12,7 +12,7 @@ Operational surfaces such as `/agent`, `/office`, `/gps-test` and visit diagnost
 
 When rules conflict, use this order:
 
-1. Product and access invariants in this repository.
+1. Current explicit user requirements, then the updated product and access invariants in this repository.
 2. This file.
 3. `DESIGN.md`.
 4. Existing production components that already satisfy 1–3.
@@ -27,8 +27,8 @@ No external reference may override Private Office product truth, access control,
 
 ## Product truth that design must preserve
 
-- The homepage is a premium contracted-agent entry surface, not a public property catalogue.
-- Portfolio content remains unavailable until the agent is authenticated and the precise-location gate is satisfied.
+- The homepage is a public, property-led introduction with a discreet agent sign-in.
+- Public portfolio and enquiry content does not require agent credentials or location. Internal operations require authentication and reviewer-approved activation.
 - Property imagery and project names in the asset library are **not** proof of current availability, price, mandate, developer relationship or right to sell.
 - Never invent inventory, prices, payment plans, scarcity, yields, testimonials, partner badges, availability, delivery dates or developer claims.
 - Operational GPS/telemetry is a backstage trust mechanism. It must not dominate property-facing copy or visual hierarchy.
@@ -431,37 +431,19 @@ Any of the following appearing without explicit justification is a design-review
 
 ## 6.1 Homepage / agent entry
 
-Purpose: premium access point for contracted agents.
+Purpose: introduce the property service and invite a qualified enquiry.
 
-Must:
+Must preserve the recovered architectural composition, high-resolution imagery, editorial typography and restrained navigation. Property discovery and private enquiry are the buyer actions. Agent sign-in is discreet and leads to office-issued credentials, saved onboarding and human-reviewed activation. No open self-registration.
 
-- remain visually sophisticated but intentionally sparse;
-- contain login as the primary task;
-- use architecture/property imagery as atmosphere, not as browsable inventory;
-- disclose location requirement at the correct step rather than turning the hero into a tracking explanation;
-- reveal no protected portfolio content before authentication + precise-location gate.
+## 6.2 Visit location step
 
-Must not:
+Purpose: coordinate an assigned appointment after explicit agent consent.
 
-- become a public property marketplace;
-- become a GPS marketing page;
-- expose portfolio thumbnails before access is satisfied.
-
-## 6.2 Location-acquisition step
-
-Purpose: unlock the authenticated environment after credential verification.
-
-Must:
-
-- explain what is needed in plain language;
-- show acquisition status, reported accuracy and failure state;
-- give immediate feedback;
-- avoid luxury decoration that obscures the task;
-- transition cleanly into the portfolio after the server accepts the fix.
+Show purpose, authorized access, retention, alternatives, reported accuracy, freshness and recoverable errors. No location request on sign-in, portfolio browsing or interview completion. Acquisition is foreground-only and stops on pause/end/navigation/background; resumption is explicit. A coordinate is never represented as exact ground truth.
 
 ## 6.3 Portfolio
 
-Purpose: help an authenticated agent understand and present the property collection.
+Purpose: help buyers and approved agents understand the property collection.
 
 Must:
 
@@ -503,7 +485,7 @@ Do not redesign from memory.
 A property-facing PR is not ready to merge until the author/reviewer can answer **yes** to all applicable items:
 
 - [ ] Product access invariants remain intact.
-- [ ] No protected inventory leaks before the location gate.
+- [ ] Public properties work without location; internal operations and location records remain authorized.
 - [ ] No invented property facts or commercial claims.
 - [ ] The layout avoids generic equal-card repetition.
 - [ ] The visual subject is the property, not the UI.

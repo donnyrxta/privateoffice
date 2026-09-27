@@ -29,10 +29,10 @@ export default function LocationDiagnostics(){
     let alive=true;
     const permissions=(navigator as Navigator & {permissions?:Permissions}).permissions;
     if(permissions?.query)permissions.query({name:'geolocation'} as PermissionDescriptor).then(p=>{if(!alive)return;setPermission(p.state);p.onchange=()=>setPermission(p.state)}).catch(()=>{});
-    return()=>{alive=false;if(watchId.current!==null)navigator.geolocation?.clearWatch(watchId.current)};
+    const hidden=()=>{if(document.visibilityState==='hidden'){if(watchId.current!==null)navigator.geolocation?.clearWatch(watchId.current);watchId.current=null;setStatus('stopped');}};document.addEventListener('visibilitychange',hidden);return()=>{alive=false;document.removeEventListener('visibilitychange',hidden);if(watchId.current!==null)navigator.geolocation?.clearWatch(watchId.current)};
   },[]);
 
-  function accept(p:GeolocationPosition){const next=fromPosition(p);setSample(next);setSamples(rows=>[next,...rows].slice(0,20));setStatus('fix_received');setError('')}
+  function accept(p:GeolocationPosition){if(document.visibilityState!=='visible')return;const next=fromPosition(p);setSample(next);setSamples(rows=>[next,...rows].slice(0,20));setStatus('fix_received');setError('')}
   function fail(e:GeolocationPositionError){setStatus('error');setError(geolocationError(e)+' ('+e.code+'): '+(e.message||'No browser message'))}
   function guard(){if(!window.isSecureContext){setError('INSECURE_CONTEXT: geolocation requires HTTPS.');setStatus('error');return false}if(!navigator.geolocation){setError('UNSUPPORTED: navigator.geolocation is unavailable in this browser.');setStatus('error');return false}return true}
   function oneFix(){setError('');setStatus('acquiring');if(!guard())return;navigator.geolocation.getCurrentPosition(accept,fail,{enableHighAccuracy:true,maximumAge:0,timeout:30000})}
@@ -40,7 +40,7 @@ export default function LocationDiagnostics(){
   function stopWatch(){if(watchId.current!==null)navigator.geolocation.clearWatch(watchId.current);watchId.current=null;setStatus('stopped')}
 
   return <><Header/><main className="app-main location-diagnostic">
-    <div className="app-title"><div><p className="eyebrow">PRIVATE OFFICE · LOCATION TEST</p><h1>Test the device fix directly.</h1><p className="muted">This bypasses visits, authentication, signing and D1. It asks this browser for location and displays the result on-device only.</p></div></div>
+    <div className="app-title"><div><p className="eyebrow">PRIVATE OFFICE · LOCATION TEST</p><h1>Test the device fix directly.</h1><p className="muted">Optional device-only test. Location is requested only when you choose a test. It is not submitted to the office. The map loads external OpenStreetMap tiles for the displayed area. The watch stops when you leave or hide this page. This test does not verify server persistence.</p></div></div>
 
     <section className="panel diagnostic-status">
       <div><span>SECURE CONTEXT</span><strong>{secure?'YES':'NO'}</strong></div>
@@ -50,8 +50,8 @@ export default function LocationDiagnostics(){
     </section>
 
     <div className="actions section-gap">
-      <button className="button" onClick={oneFix}><Crosshair size={18}/>Acquire one precise fix</button>
-      <button className="button" onClick={startWatch}><Play size={18}/>Start continuous watch</button>
+      <button className="button" onClick={oneFix}><Crosshair size={18}/>Acquire one device fix</button>
+      <button className="button" onClick={startWatch}><Play size={18}/>Start foreground test</button>
       <button className="button outline" onClick={stopWatch}><Pause size={18}/>Stop watch</button>
     </div>
 

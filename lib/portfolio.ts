@@ -7,6 +7,7 @@ export type MediaProvenance={
 export type PortfolioMedia={
   src:string;
   alt:string;
+  srcSet?:string;
   focal?:string;
   label?:string;
   provenance?:MediaProvenance;
@@ -42,9 +43,10 @@ const diamante:ResidenceType={
   slug:'diamante',
   name:'Diamante',
   bedrooms:'6 bedrooms',
-  descriptor:'A sculptural villa typology from the Tierra Viva source library.',
+  descriptor:'A sculptural six-bedroom villa type at Tierra Viva.',
   hero:{
-    src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_2_2_a4790ab5a2.jpg',
+    src:'/assets/villa-hero-2000.webp',
+    srcSet:'/assets/villa-hero-720.webp 720w, /assets/villa-hero-1280.webp 1280w, /assets/villa-hero-2000.webp 2000w',
     alt:'Tierra Viva Diamante villa exterior architectural render',
     focal:'center 56%',
     label:'Exterior',
@@ -94,7 +96,7 @@ const diamante:ResidenceType={
       provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNlbgXUw',sourceName:'DG.AL_Diamente Villa_ID_MasterBedroom.jpg'}
     }
   ],
-  sourceNote:'Residence-type material is retained in the Private Office source library. Current availability and commercial terms must be confirmed by the office before presentation to a client.'
+  sourceNote:'Architectural impressions illustrate this residence type. Ask our office to confirm current availability, pricing and commercial terms.'
 };
 
 const zafiro:ResidenceType={
@@ -132,7 +134,7 @@ const zafiro:ResidenceType={
       provenance:{canvaFolderId:'FAFnNzU9ibc',canvaAssetId:'MAFnNywqzmk',sourceName:'DG.AL_Zafiro Villa_Int_MasterBedroom.jpg'}
     }
   ],
-  sourceNote:'Residence-type material is retained in the Private Office source library. Current availability and commercial terms must be confirmed by the office before presentation to a client.'
+  sourceNote:'Architectural impressions illustrate this residence type. Ask our office to confirm current availability, pricing and commercial terms.'
 };
 
 const esmeralda:ResidenceType={
@@ -177,7 +179,7 @@ const esmeralda:ResidenceType={
       provenance:{canvaFolderId:'FAFnN2fIZnU',canvaAssetId:'MAFnN0Mv82Y',sourceName:'DG.AL_Esmeralda Villa_Int_MasterBedroom.jpg'}
     }
   ],
-  sourceNote:'Residence-type material is retained in the Private Office source library. Current availability and commercial terms must be confirmed by the office before presentation to a client.'
+  sourceNote:'Architectural impressions illustrate this residence type. Ask our office to confirm current availability, pricing and commercial terms.'
 };
 
 export const tierraViva:PortfolioProject={

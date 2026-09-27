@@ -6,7 +6,7 @@ Private Office is a premium international property experience for private buyers
 
 Agent identity -> registered device + P-256 signing key -> Private Office security session -> customer visit share epoch -> high-accuracy device observations -> local durable outbox -> signed bounded batch -> authenticated Cloudflare Worker -> validation + idempotency + anomaly flags -> D1 persistence -> explicit processed_ids ACK -> client latest-position projection / office evidence projection.
 
-The web prototype uses IndexedDB for the durable outbox. The native/ directory contains the Capacitor 8 adapter architecture using @capgo/background-geolocation for native acquisition and @capgo/capacitor-fast-sql for the native SQLite outbox. Both target the same Worker API, schema, sequence model and ACK protocol.
+The web prototype uses IndexedDB for the durable outbox. The native/ directory contains an earlier, unshipped adapter exploration. It is not part of the current foreground-only website workflow.
 
 ## Reliability properties
 
@@ -52,11 +52,11 @@ Apply the schema in order:
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
-    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0005_agent_onboarding_screening.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0006_agent_interviews.sql
 
 ### Readiness
 
-GET /api/health returns 200 (ready or degraded) or 503 (not_ready). It checks the DB binding, a live D1 query, all required tables and enriched telemetry columns, schema version 0002_production_readiness, the Cloudflare Access runtime config (standalone builds), office bootstrap state, and the watchdog/retention scheduler heartbeats. It returns no visit, client or agent data.
+GET /api/health returns 200 (ready or degraded) or 503 (not_ready). It checks the DB binding, a live D1 query, all required tables and enriched telemetry columns, schema version 0006_agent_interviews, the Cloudflare Access runtime config (standalone builds), office bootstrap state, and the watchdog/retention scheduler heartbeats. It returns no visit, client or agent data.
 
 ### Go-live
 
@@ -94,19 +94,22 @@ See native/README.md. The native shell intentionally does not use Capgo's best-e
 
 ## Main routes
 
-- / — premium contracted-agent login; no portfolio content before authentication
-- /onboarding/[token] — private, time-limited first-agent screening; no property inventory is exposed
-- /residences — authenticated editorial portfolio; requires a fresh precise session location\n- /residences/tierra-viva — authenticated Tierra Viva project brief\n- /residences/tierra-viva/[residence] — authenticated residence-type detail for Diamante, Zafiro and Esmeralda
-- /agent — Private Office credential login and assigned-visit workspace
-- /office — owner workspace, visit history and security activity
-- /visit/[id] — private client arrival view
-- /privacy — platform tracking/data notice
-- /agent/demo, /office/demo, /visit/demo — synthetic demonstrations
-- /gps-test — isolated browser/OS location acquisition test; no D1 upload
+- `/` — public property introduction and qualified enquiry
+- `/residences` — editorial collection
+- `/residences/tierra-viva` — project context
+- `/residences/tierra-viva/[residence]` — residence detail and contextual enquiry
+- `/agent/sign-in` — office-issued credentials; no public registration
+- `/agent/onboarding` — saved first-login profile, five screening stages and activation status
+- `/agent` — approved agent's assigned visits
+- `/office` — authenticated owner workspace
+- `/office/reviews` — screening review and human activation
+- `/visit/[id]` — private client arrival view
+- `/privacy` — purpose, access, retention and location alternatives
+- `/gps-test` — explicitly initiated local acquisition diagnostic; no D1 upload
 
 ## Imagery
 
-The connected Canva library was inspected and the original Private Office source includes the Tierra Viva material. Because this connector path cannot safely transfer the large local binary into GitHub without truncation, this checkpoint uses an official DarGlobal Tierra Viva CDN image for the runtime hero. Asset provenance is documented in docs/ASSETS.md.
+The homepage and primary Diamante exterior use local 720/1280/2000 px WebP derivatives of the recovered 2000×1171 source. Other portfolio images retain official CDN sources. Canva folder and source provenance are recorded in `docs/ASSETS.md`; thumbnails must never be enlarged into heroes.
 
 ## Verification
 
@@ -118,4 +121,7 @@ First-time representatives are invited by the office rather than self-registerin
 
 ### Contracted-agent access invariant
 
-Agent credentials authenticate identity but do not unlock the portfolio. After login, `/agent/location` must persist a device fix with reported accuracy <=25 m. Agent APIs, `/agent`, and `/residences` require that precise fix to remain fresher than 60 seconds. The browser refreshes presence approximately every 15 seconds while the workspace is in use. Presence rows also record the current path and dwell interval so the office can review where an agent was working and what areas of Private Office they used. Loss of permission, stale location, or insufficient accuracy re-locks the session.
+Credentials allow onboarding. Saved interview responses inform an office-owner review and explicit human activation; they never auto-approve an agent. Approved agents can accept and start assigned visits. Opening the homepage, portfolio, login or interviews never requests location. The legacy presence endpoint is disabled. Browser location requires explicit visit consent and stops on pause, arrival, completion, backgrounding or leaving the workspace. A return requires explicit start/resume. See `docs/COMPLETION_PLAN.md` for the audited baseline and acceptance criteria.
+
+
+Integration with concurrent main updates: preserve migration `0005_agent_onboarding_screening.sql` and apply it before `0006_agent_interviews.sql`. Optional invitation-link screening is pre-credential intake; the contracted agent then completes the first-login professional interview for visit activation. Public residences never require GPS.

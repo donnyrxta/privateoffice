@@ -1,6 +1,6 @@
 import type {QualityClass} from './telemetry/shared';
-export const CONSENT_VERSION='2026-09-25.v2';
-export const CONSENT_SUMMARY='When a Private Office security or customer-visit session is active, the platform records device-reported location observations, reported accuracy, timestamps and tracking-health events. During an active customer visit, the office receives the full visit evidence trail and the client receives the latest persisted position, its age and reported accuracy. Visit tracking ends on an explicit terminal action, revocation or expiry.';
+export const CONSENT_VERSION='2026-09-27.v3';
+export const CONSENT_SUMMARY='Location is collected only after you start an assigned visit and grant permission. The office receives the visit history; the client’s private arrival link shows the latest persisted fix, its age and reported accuracy. Collection stops when you pause, arrive, complete, leave this page or put it in the background. Records are retained for up to 30 days. If permission is unavailable, contact the office to coordinate by phone.';
 export const RETENTION_MS=30*24*60*60*1000;
 export const SHARE_MS=4*60*60*1000;
 export const FRESH_MS=30*1000;
@@ -10,7 +10,7 @@ export type Visit={id:string;health?:HealthDetail;agent_name:string;agent_email?
 export function distanceMetres(a:{lat:number;lng:number},b:{lat:number;lng:number}){const rad=Math.PI/180,dl=(b.lat-a.lat)*rad,dn=(b.lng-a.lng)*rad;const q=Math.sin(dl/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dn/2)**2;return 6371000*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
 export function statusLabel(s:string){return ({scheduled:'Visit scheduled',accepted:'Ready for visit',sharing:'On the way',paused:'Sharing stopped',arrived:'Arrival reported',completed:'Visit completed',revoked:'Visit cancelled',expired:'Visit expired'} as Record<string,string>)[s]||s}
 // Production readiness contract. Bump SCHEMA_VERSION with every migration that the Worker depends on.
-export const SCHEMA_VERSION='0005_agent_onboarding_screening';
+export const SCHEMA_VERSION='0006_agent_interviews';
 // Server-side tracking-health thresholds measured from the latest persisted position (field-tune before go-live).
 export const HEALTH_THRESHOLDS={delayedMs:15_000,staleMs:45_000,interruptedMs:90_000};
 export type TrackingHealthState='idle'|'acquiring'|'healthy'|'delayed'|'degraded'|'stale'|'interrupted'|'window_elapsed'|'completed'|'revoked';

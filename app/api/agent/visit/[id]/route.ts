@@ -6,14 +6,14 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){r
 if(['pause','arrive','complete'].includes(b.action)){const target=b.action==='pause'?'paused':b.action==='arrive'?'arrived':'completed';if(v.status===target)return json({ok:true,replayed:true,persisted_sequence:Number(v.last_sequence??-1)});}
 active(v);
 if(b.action==='start'){
-  if(b.consent!==true||b.version!==CONSENT_VERSION||!v.consent_at)throw new HttpError(400,'Confirm location sharing for this visit.');
+  if(b.consent!==true||b.version!==CONSENT_VERSION)throw new HttpError(400,'Confirm location sharing for this visit.');
   if(v.status==='arrived')throw new HttpError(409,'This visit has already arrived.');
   if(!['accepted','paused','sharing'].includes(v.status))throw new HttpError(409,'This visit is not ready to start.');
   const deviceId=str(b.device_id,100);await getDeviceForAgent(deviceId,u.userId);
   const epoch=crypto.randomUUID(),until=Math.min(now+SHARE_MS,v.expires_at);
   await db().batch([
     db().prepare("UPDATE visits SET status='paused',share_epoch=NULL,share_until=NULL,stopped_at=?,tracking_health='idle' WHERE agent_id=? AND status='sharing' AND id<>?").bind(now,u.userId,v.id),
-    db().prepare("UPDATE visits SET status='sharing',share_started_at=?,share_epoch=?,share_until=?,stopped_at=NULL,eta_minutes=?,active_device_id=?,last_sequence=-1,missing_observations=0,health_reason=NULL,tracking_health='acquiring' WHERE id=? AND revoked_at IS NULL AND status NOT IN ('completed','arrived') AND expires_at>?").bind(now,epoch,until,num(b.eta_minutes,1,240),deviceId,v.id,now),
+    db().prepare("UPDATE visits SET status='sharing',consent_at=?,consent_version=?,share_started_at=?,share_epoch=?,share_until=?,stopped_at=NULL,eta_minutes=?,active_device_id=?,last_sequence=-1,missing_observations=0,health_reason=NULL,tracking_health='acquiring' WHERE id=? AND revoked_at IS NULL AND status NOT IN ('completed','arrived') AND expires_at>?").bind(now,CONSENT_VERSION,now,epoch,until,num(b.eta_minutes,1,240),deviceId,v.id,now),
     event(v.id,'sharing_started',u.userId,JSON.stringify({consent_version:CONSENT_VERSION,device_id:deviceId,share_epoch:epoch}))
   ]);
   return json({epoch,until,device_id:deviceId,last_sequence:-1});

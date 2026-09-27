@@ -1,3 +1,5 @@
+> Current access correction (27 September 2026): portfolio pages are public. Agent sign-in is `/agent/sign-in`; first-login interviews and human approval precede visits. Presence-gate descriptions and re-lock states below are historical and superseded by AGENTS.md. Retain the property/media ontology and architectural viewer composition.
+
 # Private Office — Portfolio Wireframes
 
 > Status: implementation map. These are structural wireframes, not generic component recipes. Visual execution is governed by `PORTFOLIO_DESIGN_SYSTEM.md`.

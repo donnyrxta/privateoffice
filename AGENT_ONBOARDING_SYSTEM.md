@@ -1,3 +1,5 @@
+> 27 September integration update: this document describes optional pre-credential invitation intake. The current owner brief makes residences public. Credential issuance leads to first-login professional interviews and explicit owner activation at `/office/reviews`; GPS is requested only for an explicitly started assigned visit. The earlier precise-location gate below is superseded. See docs/DESIGN_DECISIONS_2026-09-27.md.
+
 # Private Office — Agent Onboarding & Screening System
 
 > Status: normative operating contract. This document governs first-time agent onboarding and must be read with `PORTFOLIO_DESIGN_SYSTEM.md`, `AGENTS.md`, and the existing authentication/location contracts.

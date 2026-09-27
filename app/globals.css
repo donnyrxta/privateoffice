@@ -164,6 +164,20 @@
   .po-residence-lens{background:#101b22f5;backdrop-filter:none;-webkit-backdrop-filter:none}
 }
 
+/* Public collection: preserve the recovered architectural composition. */
+.form-stack select{width:100%;min-height:44px;border:1px solid var(--input);border-radius:4px;background:#fff;padding:10px 12px;color:var(--foreground);font:inherit;margin-top:6px}
+.po-portfolio p:not(.po-kicker),.po-project p:not(.po-kicker),.po-residence-detail p:not(.po-kicker){font-size:16px}
+.po-header nav a{min-height:44px}.po-project-exit a{min-height:44px;display:inline-flex;align-items:center}
+@media(max-width:700px){.site-header nav{flex-wrap:wrap;justify-content:flex-end;gap:0 14px}.site-header nav a{min-height:44px}.site-header{min-height:98px;height:auto;padding-top:12px;padding-bottom:12px;gap:15px}.site-header .brand{flex-shrink:0}.po-header{height:auto;min-height:84px;gap:14px}.po-header nav{gap:0 14px;flex-wrap:wrap;justify-content:flex-end}.po-header nav a{font-size:12px}.hero-description{font-size:16px}.hero h1{text-wrap:balance}}
+
+/* Approved reference translation: frosted glass is an access layer, not page-wide decoration. */
+.agent-entry .portal-login-card{background:rgba(246,247,247,.94);border:1px solid rgba(255,255,255,.65);border-radius:16px;box-shadow:0 20px 60px #07131c35;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.agent-entry .portal-login-intro,.agent-entry .portal-location-note,.agent-entry label{font-size:16px;color:#435159}.agent-entry .portal-location-note{line-height:1.55}.agent-entry .portal-index,.agent-entry .portal-bottom{font-size:12px;letter-spacing:1px}.agent-entry .portal-copy>p:not(.eyebrow){font-size:16px}.agent-entry .portal-office-link,.agent-entry .portal-bottom a{min-height:44px;display:flex;align-items:center}.agent-entry .portal-login-form .button:active{transform:scale(.99)}
+@supports not (backdrop-filter:blur(1px)){.agent-entry .portal-login-card{background:#f6f7f7}}
+@media(prefers-reduced-transparency:reduce){.agent-entry .portal-login-card{background:#f6f7f7;backdrop-filter:none}}
+@media(min-width:901px){.agent-entry .portal-login-card{width:min(430px,39vw)}.agent-entry .portal-copy{min-height:850px}.agent-entry .portal-copy h1{font-size:clamp(48px,5.2vw,80px)}}
+@media(max-width:900px){.agent-entry .portal-copy{min-height:auto;padding-top:70px;padding-bottom:54px}.agent-entry .portal-login-card{max-width:560px;margin:0 5vw 55px}}
+
 
 /* Architectural media viewer */
 .po-gallery-open{position:relative;display:block;width:100%;padding:0;border:0;background:transparent;text-align:inherit;overflow:hidden;cursor:zoom-in}

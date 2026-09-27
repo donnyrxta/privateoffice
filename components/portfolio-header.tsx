@@ -1,18 +1,3 @@
-'use client';
-
+import Link from 'next/link';
 import {Brand} from './landing';
-
-export default function PortfolioHeader(){
-  async function logout(){
-    try{await fetch('/api/agent/logout',{method:'POST',cache:'no-store'})}
-    finally{location.assign('/')}
-  }
-  return <header className="po-header">
-    <Brand/>
-    <nav aria-label="Private Office">
-      <a href="/residences">Portfolio</a>
-      <a href="/agent">Visits</a>
-      <button type="button" onClick={logout}>Sign out</button>
-    </nav>
-  </header>
-}
+export default function PortfolioHeader(){return <header className="po-header"><Brand/><nav aria-label="Private Office"><Link href="/residences">Residences</Link><Link href="/?enquire=private">Private enquiry</Link><Link href="/agent">Agent sign in</Link></nav></header>}
