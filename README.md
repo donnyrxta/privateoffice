@@ -52,6 +52,7 @@ Apply the schema in order:
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0005_agent_onboarding_screening.sql
 
 ### Readiness
 
@@ -94,6 +95,7 @@ See native/README.md. The native shell intentionally does not use Capgo's best-e
 ## Main routes
 
 - / — premium contracted-agent login; no portfolio content before authentication
+- /onboarding/[token] — private, time-limited first-agent screening; no property inventory is exposed
 - /residences — authenticated editorial portfolio; requires a fresh precise session location\n- /residences/tierra-viva — authenticated Tierra Viva project brief\n- /residences/tierra-viva/[residence] — authenticated residence-type detail for Diamante, Zafiro and Esmeralda
 - /agent — Private Office credential login and assigned-visit workspace
 - /office — owner workspace, visit history and security activity
@@ -109,6 +111,10 @@ The connected Canva library was inspected and the original Private Office source
 ## Verification
 
 See docs/VERIFICATION.md, docs/OPERATIONS.md and docs/GO_LIVE.md.
+
+### First-time agent onboarding
+
+First-time representatives are invited by the office rather than self-registering. The office creates a time-limited capability link, the candidate completes a professional profile and versioned scenario screening, and the system stores a transparent dimension-by-dimension expertise map. The map never auto-approves or auto-rejects. Only an authenticated office owner can approve a submitted application; approval provisions the existing D1 agent account and returns the generated password once. See `AGENT_ONBOARDING_SYSTEM.md`.
 
 ### Contracted-agent access invariant
 

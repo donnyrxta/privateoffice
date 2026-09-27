@@ -10,8 +10,9 @@ Before modifying any property-facing route or component, read:
 2. `PORTFOLIO_DESIGN_SYSTEM.md`
 3. `PORTFOLIO_ONTOLOGY.md`
 4. `PORTFOLIO_WIREFRAMES.md`
-5. `docs/ASSETS.md`
-6. the existing implementation being changed
+5. `AGENT_ONBOARDING_SYSTEM.md` when touching agent lifecycle, identity, screening or provisioning
+6. `docs/ASSETS.md`
+7. the existing implementation being changed
 
 Do not redesign from memory or from a generic component-library default.
 

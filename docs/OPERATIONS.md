@@ -17,7 +17,7 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 
 1. Create D1 database `private-office-d1`.
 2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID. Without it the build fails.
-3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, `drizzle/0003_agent_credentials.sql`, then `drizzle/0004_agent_presence_gate.sql` to the remote database.
+3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, `drizzle/0003_agent_credentials.sql`, then `drizzle/0004_agent_presence_gate.sql`, then `drizzle/0005_agent_onboarding_screening.sql` to the remote database.
 4. Run `npm run office:secret` and configure the printed `OFFICE_SETUP_HASH` as a runtime secret.
 5. Configure Cloudflare Access for `/office*` and `/api/office/*` only, then provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD`. Contracted agents use Private Office-issued credentials.
 6. Deploy from `main`.
@@ -34,8 +34,11 @@ If location permission has already been granted, the web prototype also records 
 
 ## Customer visit
 
-1. Office creates the contracted agent account once and gives the username/password directly to that agent.
-2. Office assigns a customer visit to that agent username and sends only the private arrival link to the intended client.
+1. For a first-time representative, the office creates a private onboarding link and sends it only to the intended candidate.
+2. Candidate completes the professional profile and versioned screening. The resulting expertise map is descriptive only; it never auto-approves or rejects.
+3. Office reviews the submitted evidence and explicitly approves or declines the application.
+4. Approval provisions the contracted agent account and returns username/password once; give those credentials directly to that agent.
+5. Office assigns a customer visit to that agent username and sends only the private arrival link to the intended client.
 3. The agent visits `/agent`, signs in, sees the assigned visit, and at departure starts the visit. The server creates a new share epoch bound to the registered device.
 4. The device requests the best practical fix and begins high-accuracy acquisition.
 5. Every callback is written to the local durable outbox with UUID + persistent sequence before transport.
