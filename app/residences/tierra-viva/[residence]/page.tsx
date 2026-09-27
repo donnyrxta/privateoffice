@@ -2,6 +2,7 @@ import {notFound,redirect} from 'next/navigation';
 import AgentPresenceGuard from '@/components/agent-presence-guard';
 import PortfolioHeader from '@/components/portfolio-header';
 import PortfolioMotion from '@/components/portfolio-motion';
+import ResidenceGallery from '@/components/residence-gallery';
 import {getAgentSession,hasFreshPreciseLocation} from '@/lib/agent-auth';
 import {getResidence,tierraViva} from '@/lib/portfolio';
 
@@ -48,12 +49,7 @@ export default async function Page({params}:{params:Promise<{residence:string}>}
         </div>
       </section>
 
-      <section className="po-gallery" id="gallery" aria-label={residence.name+' gallery'}>
-        {media.map((item,index)=><figure key={item.src} className={'po-gallery-frame po-gallery-frame-'+((index%4)+1)} data-po-reveal>
-          <div><img src={item.src} alt={item.alt} style={{objectPosition:item.focal}} loading={index===0?'eager':'lazy'}/></div>
-          <figcaption><span>{String(index+1).padStart(2,'0')}</span><strong>{item.label??'Architecture'}</strong></figcaption>
-        </figure>)}
-      </section>
+      <ResidenceGallery media={media} project={tierraViva.name} residence={residence.name}/>
 
       <section className="po-residence-truth" data-po-reveal>
         <div>

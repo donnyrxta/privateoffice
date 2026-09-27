@@ -42,3 +42,64 @@ The connected Canva API currently exposes asset metadata and thumbnails, not a s
 Project facts in `lib/portfolio.ts` are source-dated and intentionally exclude price, unit availability, payment plans and investment-return claims. The UI marks those as confirmation-required.
 
 The presence of project media in Canva or this repository is not evidence of current unit availability, commercial terms, a sales mandate or developer affiliation.
+
+
+## Canva portfolio asset registry
+
+The following IDs were re-checked against the connected Canva library during the portfolio interaction pass.
+
+### Tierra Viva — Diamante
+
+Folder: `FAFnNqCSiZA`
+
+| Canva asset ID | Filename |
+|---|---|
+| `MAFnNhJ_TxE` | DG.AL_Diamente Villa Ext 1.jpg |
+| `MAFnNjbu7Do` | DG.AL_Diamente Villa Ext 2.jpg |
+| `MAFnNsNYi1c` | DG.AL_Diamente Villa Ext 3.jpg |
+| `MAFnNphIP-M` | DG.AL_Diamente Villa_ID_Dining.jpg |
+| `MAFnNgT7WH8` | DG.AL_Diamente Villa_ID_Kitchen Dining.jpg |
+| `MAFnNigjZe4` | DG.AL_Diamente Villa_ID_Living.jpg |
+| `MAFnNlbgXUw` | DG.AL_Diamente Villa_ID_MasterBedroom.jpg |
+
+The Canva API reports `MAFnNhJ_TxE` as a 6000×3636 original.
+
+### Tierra Viva — Zafiro
+
+Folder: `FAFnNzU9ibc`
+
+| Canva asset ID | Filename |
+|---|---|
+| `MAFnN3U-GyY` | DG.AL_Zafiro Villa_Ext 1.jpg |
+| `MAFnN6VzrqM` | DG.AL_Zafiro Villa_Ext 2.jpg |
+| `MAFnN0qmrTQ` | DG.AL_Zafiro Villa_Int_Dining.jpg |
+| `MAFnN4GSXsk` | DG.AL_Zafiro Villa_Int_Living Kitchen.jpg |
+| `MAFnN6vrKSI` | DG.AL_Zafiro Villa_Int_Living.jpg |
+| `MAFnNywqzmk` | DG.AL_Zafiro Villa_Int_MasterBedroom.jpg |
+
+### Tierra Viva — Esmeralda
+
+Folder: `FAFnN2fIZnU`
+
+| Canva asset ID | Filename |
+|---|---|
+| `MAFnNonr9IQ` | DG.AL_Esmeralda Villa_Ext 1.jpg |
+| `MAFnNtRvN-A` | DG.AL_Esmeralda Villa_Ext 2.jpg |
+| `MAFnNsTi0LU` | DG.AL_Esmeralda Villa_Ext 3.jpg |
+| `MAFnNg2MqM8` | DG.AL_Esmeralda Villa_Int_Balcony.jpg |
+| `MAFnNupiey0` | DG.AL_Esmeralda Villa_Int_Dining Kitchen.jpg |
+| `MAFnNpAHLys` | DG.AL_Esmeralda Villa_Int_Living Terrace.jpg |
+| `MAFnNtuIoM8` | DG.AL_Esmeralda Villa_Int_Living.jpg |
+| `MAFnN0Mv82Y` | DG.AL_Esmeralda Villa_Int_MasterBedroom.jpg |
+
+### Tierra Viva — masterplan / aerial
+
+Folder: `FAFnN_lBXaI`
+
+| Canva asset ID | Filename |
+|---|---|
+| `MAFnN-O-S_s` | DG.AL_TierraViva Aerial 1.jpg |
+| `MAFnN0KRLMk` | DG.AL_TierraViva Aerial 2.jpg |
+| `MAFnN51E-Rc` | DG.AL_TierraViva Aerial 3.jpg |
+
+These IDs are provenance references. Do not embed temporary Canva thumbnail URLs in production.

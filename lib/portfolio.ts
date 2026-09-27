@@ -1,8 +1,15 @@
+export type MediaProvenance={
+  canvaFolderId:string;
+  canvaAssetId:string;
+  sourceName:string;
+};
+
 export type PortfolioMedia={
   src:string;
   alt:string;
   focal?:string;
   label?:string;
+  provenance?:MediaProvenance;
 };
 
 export type ResidenceType={
@@ -40,44 +47,51 @@ const diamante:ResidenceType={
     src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_2_2_a4790ab5a2.jpg',
     alt:'Tierra Viva Diamante villa exterior architectural render',
     focal:'center 56%',
-    label:'Exterior'
+    label:'Exterior',
+    provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNjbu7Do',sourceName:'DG.AL_Diamente Villa Ext 2.jpg'}
   },
   gallery:[
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_1_2_61d5e1af77.jpg',
       alt:'Tierra Viva Diamante villa exterior render',
       focal:'center 52%',
-      label:'Exterior'
+      label:'Exterior',
+      provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNhJ_TxE',sourceName:'DG.AL_Diamente Villa Ext 1.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_3_2_998bbe6335.jpg',
       alt:'Tierra Viva Diamante villa exterior and pool render',
       focal:'center 52%',
-      label:'Exterior'
+      label:'Exterior',
+      provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNsNYi1c',sourceName:'DG.AL_Diamente Villa Ext 3.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Living_2_ce83c0be6a.jpg',
       alt:'Tierra Viva Diamante villa living interior render',
       focal:'center 58%',
-      label:'Living'
+      label:'Living',
+      provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNigjZe4',sourceName:'DG.AL_Diamente Villa_ID_Living.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Dining_2_c62c786900.jpg',
       alt:'Tierra Viva Diamante villa dining interior render',
       focal:'center 54%',
-      label:'Dining'
+      label:'Dining',
+      provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNphIP-M',sourceName:'DG.AL_Diamente Villa_ID_Dining.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Kitchen_Dining_2_5fe13fa645.jpg',
       alt:'Tierra Viva Diamante villa kitchen and dining interior render',
       focal:'center 54%',
-      label:'Kitchen'
+      label:'Kitchen',
+      provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNgT7WH8',sourceName:'DG.AL_Diamente Villa_ID_Kitchen Dining.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_ID_Master_Bedroom_2_96b22bcd47.jpg',
       alt:'Tierra Viva Diamante villa master bedroom render',
       focal:'center 54%',
-      label:'Master bedroom'
+      label:'Master bedroom',
+      provenance:{canvaFolderId:'FAFnNqCSiZA',canvaAssetId:'MAFnNlbgXUw',sourceName:'DG.AL_Diamente Villa_ID_MasterBedroom.jpg'}
     }
   ],
   sourceNote:'Residence-type material is retained in the Private Office source library. Current availability and commercial terms must be confirmed by the office before presentation to a client.'
@@ -92,32 +106,30 @@ const zafiro:ResidenceType={
     src:'https://cdn.darglobal.co.uk/DG_AL_Zafiro_Villa_Ext_1_2_bd6c43ca4f.jpg',
     alt:'Tierra Viva Zafiro villa exterior architectural render',
     focal:'center 54%',
-    label:'Exterior'
+    label:'Exterior',
+    provenance:{canvaFolderId:'FAFnNzU9ibc',canvaAssetId:'MAFnN3U-GyY',sourceName:'DG.AL_Zafiro Villa_Ext 1.jpg'}
   },
   gallery:[
-    {
-      src:'https://cdn.darglobal.co.uk/DG_AL_Zafiro_Villa_Ext_3_2_e17dec1c88.jpg',
-      alt:'Tierra Viva Zafiro villa exterior render',
-      focal:'center 50%',
-      label:'Exterior'
-    },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Zafiro_Villa_Int_Living_2_0faff39b0c.jpg',
       alt:'Tierra Viva Zafiro villa living room render',
       focal:'center 54%',
-      label:'Living'
+      label:'Living',
+      provenance:{canvaFolderId:'FAFnNzU9ibc',canvaAssetId:'MAFnN6vrKSI',sourceName:'DG.AL_Zafiro Villa_Int_Living.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Zafiro_Villa_Int_Dining_2_59588f9ca6.jpg',
       alt:'Tierra Viva Zafiro villa dining room render',
       focal:'center 54%',
-      label:'Dining'
+      label:'Dining',
+      provenance:{canvaFolderId:'FAFnNzU9ibc',canvaAssetId:'MAFnN0qmrTQ',sourceName:'DG.AL_Zafiro Villa_Int_Dining.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Zafiro_Villa_Int_Master_Bedroom_2_dfa6c47c59.jpg',
       alt:'Tierra Viva Zafiro villa master bedroom render',
       focal:'center 52%',
-      label:'Master bedroom'
+      label:'Master bedroom',
+      provenance:{canvaFolderId:'FAFnNzU9ibc',canvaAssetId:'MAFnNywqzmk',sourceName:'DG.AL_Zafiro Villa_Int_MasterBedroom.jpg'}
     }
   ],
   sourceNote:'Residence-type material is retained in the Private Office source library. Current availability and commercial terms must be confirmed by the office before presentation to a client.'
@@ -132,32 +144,37 @@ const esmeralda:ResidenceType={
     src:'https://cdn.darglobal.co.uk/DG_AL_Esmeralda_Villa_Ext_2_2_00c83a3d39.jpg',
     alt:'Tierra Viva Esmeralda villa exterior architectural render',
     focal:'center 54%',
-    label:'Exterior'
+    label:'Exterior',
+    provenance:{canvaFolderId:'FAFnN2fIZnU',canvaAssetId:'MAFnNtRvN-A',sourceName:'DG.AL_Esmeralda Villa_Ext 2.jpg'}
   },
   gallery:[
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Esmeralda_Villa_Ext_3_2_7107dfb0cf.jpg',
       alt:'Tierra Viva Esmeralda villa exterior render',
       focal:'center 48%',
-      label:'Exterior'
+      label:'Exterior',
+      provenance:{canvaFolderId:'FAFnN2fIZnU',canvaAssetId:'MAFnNsTi0LU',sourceName:'DG.AL_Esmeralda Villa_Ext 3.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Esmeralda_Villa_Int_Living_2_d4dad80bb6.jpg',
       alt:'Tierra Viva Esmeralda villa living room render',
       focal:'center 56%',
-      label:'Living'
+      label:'Living',
+      provenance:{canvaFolderId:'FAFnN2fIZnU',canvaAssetId:'MAFnNtuIoM8',sourceName:'DG.AL_Esmeralda Villa_Int_Living.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Esmeralda_Villa_Int_Balcony_2_e676472fdd.jpg',
       alt:'Tierra Viva Esmeralda villa balcony render',
       focal:'center 50%',
-      label:'Balcony'
+      label:'Balcony',
+      provenance:{canvaFolderId:'FAFnN2fIZnU',canvaAssetId:'MAFnNg2MqM8',sourceName:'DG.AL_Esmeralda Villa_Int_Balcony.jpg'}
     },
     {
       src:'https://cdn.darglobal.co.uk/DG_AL_Esmeralda_Villa_Int_Master_Bedroom_2_2d3ff4edf2.jpg',
       alt:'Tierra Viva Esmeralda villa master bedroom render',
       focal:'center 52%',
-      label:'Master bedroom'
+      label:'Master bedroom',
+      provenance:{canvaFolderId:'FAFnN2fIZnU',canvaAssetId:'MAFnN0Mv82Y',sourceName:'DG.AL_Esmeralda Villa_Int_MasterBedroom.jpg'}
     }
   ],
   sourceNote:'Residence-type material is retained in the Private Office source library. Current availability and commercial terms must be confirmed by the office before presentation to a client.'
@@ -175,7 +192,8 @@ export const tierraViva:PortfolioProject={
     src:'https://cdn.darglobal.co.uk/DG_AL_Tierra_Viva_Aerial_1_10_06_37_AM_ce0428bc79.jpg',
     alt:'Aerial architectural render of Tierra Viva in the hills of Benahavís',
     focal:'center 48%',
-    label:'Masterplan'
+    label:'Masterplan',
+    provenance:{canvaFolderId:'FAFnN_lBXaI',canvaAssetId:'MAFnN-O-S_s',sourceName:'DG.AL_TierraViva Aerial 1.jpg'}
   },
   facts:[
     {label:'Property type',value:'Villa'},

@@ -8,8 +8,10 @@ Before modifying any property-facing route or component, read:
 
 1. `DESIGN.md`
 2. `PORTFOLIO_DESIGN_SYSTEM.md`
-3. `docs/ASSETS.md`
-4. the existing implementation being changed
+3. `PORTFOLIO_ONTOLOGY.md`
+4. `PORTFOLIO_WIREFRAMES.md`
+5. `docs/ASSETS.md`
+6. the existing implementation being changed
 
 Do not redesign from memory or from a generic component-library default.
 
