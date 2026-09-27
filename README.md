@@ -114,7 +114,7 @@ See docs/VERIFICATION.md, docs/OPERATIONS.md and docs/GO_LIVE.md.
 
 ### First-time agent onboarding
 
-First-time representatives are invited by the office rather than self-registering. The office creates a time-limited capability link, the candidate completes a professional profile and versioned scenario screening, and the system stores a transparent dimension-by-dimension expertise map. The map never auto-approves or auto-rejects. Only an authenticated office owner can approve a submitted application; approval provisions the existing D1 agent account and returns the generated password once. See `AGENT_ONBOARDING_SYSTEM.md`.
+First-time representatives are invited by the office rather than self-registering. The office creates a time-limited capability link, the candidate completes a professional profile and versioned scenario screening, and the system stores a transparent dimension-by-dimension expertise map. The map never auto-approves or auto-rejects. Only an authenticated office owner can approve a submitted application; approval provisions the existing D1 agent account and returns the generated password once. The office agent view then projects the approved representative’s screening-derived experience, markets, specialisms, languages and expertise map alongside operational presence/activity. See `AGENT_ONBOARDING_SYSTEM.md`.
 
 ### Contracted-agent access invariant
 
