@@ -57,6 +57,7 @@ npx wrangler d1 execute private-office-d1 --remote --file drizzle/0000_huge_bliz
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0001_durable_telemetry.sql
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
+npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
 npx wrangler d1 execute private-office-d1 --remote --file drizzle/0005_agent_onboarding_screening.sql
 npx wrangler d1 execute private-office-d1 --remote --command "SELECT version FROM schema_migrations ORDER BY version"
 
