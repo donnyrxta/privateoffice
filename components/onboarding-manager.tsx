@@ -3,10 +3,11 @@
 import {useEffect,useState} from 'react';
 import {ArrowRight,Check,Copy,RefreshCw,ShieldCheck,UserPlus,X} from 'lucide-react';
 import {api,post,date} from '@/lib/client';
+import {SCREENING_QUESTIONS} from '@/lib/screening';
 import styles from './onboarding-manager.module.css';
 
 type Classification={archetype:string;dimensions:Record<string,{score:number;level:string}>;primary_strengths:string[];interview_focus:string[]};
-type Application={id:string;full_name:string|null;email:string|null;phone:string|null;city:string|null;country:string|null;current_company:string|null;years_experience:number|null;languages:string[];markets:string[];specialisms:string[];experience_summary:string|null;motivation:string|null;status:string;created_at:number;updated_at:number;submitted_at:number|null;reviewed_at:number|null;review_note:string|null;classification:Classification|null};
+type Application={id:string;full_name:string|null;email:string|null;phone:string|null;city:string|null;country:string|null;current_company:string|null;years_experience:number|null;languages:string[];markets:string[];specialisms:string[];experience_summary:string|null;motivation:string|null;status:string;created_at:number;updated_at:number;submitted_at:number|null;reviewed_at:number|null;review_note:string|null;classification:Classification|null;answers:Record<string,string>};
 type Invite={id:string;intended_email:string|null;status:string;created_at:number;expires_at:number;opened_at:number|null;submitted_at:number|null;application_id:string|null};
 type Payload={applications:Application[];invites:Invite[]};
 type Issued={name:string;username:string;password:string}|null;
@@ -44,6 +45,6 @@ function ApplicationRow({app,actions}:{app:Application;actions:React.ReactNode})
   <div className={styles.identity}><div><p className="eyebrow">SUBMITTED APPLICATION</p><h4>{app.full_name}</h4><p>{app.email} · {app.phone}<br/>{app.city}, {app.country} · {app.years_experience} years</p></div><ShieldCheck size={22}/></div>
   <div className={styles.practice}><div><span>MARKETS</span><strong>{app.markets.join(' · ')}</strong></div><div><span>SPECIALISMS</span><strong>{app.specialisms.join(' · ')}</strong></div><div><span>LANGUAGES</span><strong>{app.languages.join(' · ')}</strong></div></div>
   {app.classification&&<div className={styles.classification}><div className={styles.archetype}><span>EXPERTISE MAP</span><strong>{app.classification.archetype}</strong></div>{Object.entries(app.classification.dimensions).map(([key,value])=><div key={key}><span>{D[key]||key}</span><strong>{value.level}<small>{value.score}</small></strong></div>)}</div>}
-  <details className={styles.evidence}><summary>Review narrative evidence <ArrowRight size={13}/></summary><div><span>EXPERIENCE</span><p>{app.experience_summary}</p><span>MOTIVATION</span><p>{app.motivation}</p></div></details>
+  <details className={styles.evidence}><summary>Review complete screening evidence <ArrowRight size={13}/></summary><div><span>EXPERIENCE</span><p>{app.experience_summary}</p><span>MOTIVATION</span><p>{app.motivation}</p><span>SCENARIO RESPONSES</span>{SCREENING_QUESTIONS.map(q=>{const answer=q.choices.find(c=>c.id===app.answers?.[q.id]);return <div className={styles.response} key={q.id}><strong>{q.prompt}</strong><p>{answer?.label||'No response recorded'}</p></div>})}</div></details>
   <div className={styles.actions}>{actions}</div>
 </article>}
