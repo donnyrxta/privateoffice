@@ -17,3 +17,7 @@ Production browser tests now click the enquiry modal, agent credential entry, re
 ## Owner login correction
 
 The owner page now initiates Cloudflare Access login using the configured team and audience and a fixed canonical return target. Both Access header and application cookie transports feed the existing RS256 signature, issuer, audience and expiry verification. Cookie presence alone never authenticates; duplicate cookies are rejected and explicit assertion headers take precedence. Owner database identity and bootstrap-secret requirements remain unchanged. TypeScript and bounded redirect/token-transport checks passed. A real owner OTP session is still needed to complete activation; no owner identity or credentials are fabricated.
+
+## Reproduced public navigation regression
+
+Production browser run 36382277821 proved the enquiry modal opens, then reproduced an uncaught `e is not a function` during client-router navigation from the homepage to agent access. Server routes separately returned the correct redirects and credential page. Replace framework Link interception with native anchors on the landing page, shared portfolio header and portfolio/detail pages. Preserve every class, image and composition. This deliberately trades client-side transitions for dependable browser navigation until the Vinext router defect is isolated. Browser verification now clicks through agent sign-in, portfolio, project detail, project enquiry, and mobile sign-in; no production records are created. TypeScript passes.

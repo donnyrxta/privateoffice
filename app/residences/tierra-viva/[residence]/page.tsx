@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import PortfolioHeader from '@/components/portfolio-header';
 import PortfolioMotion from '@/components/portfolio-motion';
@@ -29,7 +28,7 @@ export default async function Page({params}:{params:Promise<{residence:string}>}
           <strong>{residence.name}</strong>
           <p>{residence.bedrooms}</p>
           <div><span>COMMERCIAL STATE</span><b>Confirmation required</b></div>
-          <Link href="#gallery">View architecture ↓</Link>
+          <a href="#gallery">View architecture ↓</a>
         </aside>
       </section>
 
@@ -55,8 +54,8 @@ export default async function Page({params}:{params:Promise<{residence:string}>}
       </section>
 
       <section className="po-project-exit">
-        <Link href="/residences/tierra-viva">← Tierra Viva</Link>
-        <Link href={"/?enquire="+encodeURIComponent("Tierra Viva · "+residence.name)}>Request a private presentation →</Link>
+        <a href="/residences/tierra-viva">← Tierra Viva</a>
+        <a href={"/?enquire="+encodeURIComponent("Tierra Viva · "+residence.name)}>Request a private presentation →</a>
       </section>
     </main>
   </div>

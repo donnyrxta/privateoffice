@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
 import {useState} from 'react';
@@ -10,15 +9,15 @@ import {Checkbox} from '@/components/ui/checkbox';
 const HERO='/assets/villa-hero-2000.webp';
 
 export function Brand(){
-  return <Link className="brand" href="/" aria-label="Private Office home"><span className="brand-mark" aria-hidden="true">╱</span><span>PRIVATE OFFICE<small>PROPERTY & PEOPLE</small></span></Link>
+  return <a className="brand" href="/" aria-label="Private Office home"><span className="brand-mark" aria-hidden="true">╱</span><span>PRIVATE OFFICE<small>PROPERTY & PEOPLE</small></span></a>
 }
 
 export function Header({publicNav=false}:{publicNav?:boolean}){
-  return <header className="site-header"><Brand/><nav aria-label="Main navigation">{publicNav?<><Link href="/residences">Residences <ArrowUpRight size={15}/></Link><Link href="/?enquire=private">Private enquiry <ArrowUpRight size={15}/></Link><Link href="/agent">Agent sign in</Link></>:<><Link href="/agent">Agent access <ArrowUpRight size={15}/></Link><Link href="/office">The office <ArrowUpRight size={15}/></Link></>}</nav></header>
+  return <header className="site-header"><Brand/><nav aria-label="Main navigation">{publicNav?<><a href="/residences">Residences <ArrowUpRight size={15}/></a><a href="/?enquire=private">Private enquiry <ArrowUpRight size={15}/></a><a href="/agent">Agent sign in</a></>:<><a href="/agent">Agent access <ArrowUpRight size={15}/></a><a href="/office">The office <ArrowUpRight size={15}/></a></>}</nav></header>
 }
 
 export function PublicFooter(){
-  return <footer><Brand/><span>Zimbabwe · International property enquiries</span><Link href="/privacy">Privacy</Link></footer>
+  return <footer><Brand/><span>Zimbabwe · International property enquiries</span><a href="/privacy">Privacy</a></footer>
 }
 
 export default function Landing({initialEnquiry=""}:{initialEnquiry?:string}){
@@ -59,11 +58,11 @@ export default function Landing({initialEnquiry=""}:{initialEnquiry?:string}){
       <div>
         <h2>Good property decisions<br/>begin with the right people.</h2>
         <p>A considered approach to international off-plan property, shaped around your priorities, your timing and the way you want to buy.</p>
-        <Link className="text-link" href="/residences">Explore private residences <ArrowRight size={18}/></Link>
+        <a className="text-link" href="/residences">Explore private residences <ArrowRight size={18}/></a>
       </div>
       <span className="intro-note">A private conversation.<br/>A considered next step.</span>
     </section>
   </main><PublicFooter/></div>
 
-  <Dialog open={open} onOpenChange={setOpen}><DialogContent className="enquiry-dialog">{success?<><Check size={30}/><DialogTitle>We have your enquiry.</DialogTitle><DialogDescription>Your details have been saved for the office. A representative will review your brief and contact you privately.</DialogDescription>{status&&<p role="status">{status}</p>}<button className="button" onClick={()=>setOpen(false)}>Close <ArrowRight size={18}/></button></>:<><p className="eyebrow">LET’S START A CONVERSATION</p><DialogTitle>Tell us what you have in mind.</DialogTitle><DialogDescription>Leave your details and the office will arrange a private property conversation.</DialogDescription><form onSubmit={submit} className="form-stack"><label>Your name<Input name="name" autoComplete="name" required maxLength={100}/></label><label>Email or phone<Input name="contact" autoComplete="email" required minLength={5} maxLength={160}/></label><label>Preferred next step<select name="request_type" required defaultValue="Private property brief"><option>Private property brief</option><option>Arrange a viewing or presentation</option><option>Discuss a specific residence</option></select></label><label>Purchase timeframe<select name="timeframe" defaultValue="Exploring options"><option>Exploring options</option><option>Within 3 months</option><option>3–6 months</option><option>6–12 months</option><option>More than 12 months</option></select></label><label>What are you looking for?<Textarea key={prefill} name="interest" required maxLength={2000} rows={4} defaultValue={prefill} placeholder="Destination, property type, intended use, timing or simply the question you want answered."/></label><Input name="website" tabIndex={-1} autoComplete="off" className="honeypot" aria-hidden="true"/><label className="check-row"><Checkbox checked={agreed} onCheckedChange={v=>setAgreed(v===true)}/><span>I agree to be contacted about this enquiry. <Link href="/privacy">Privacy notice</Link></span></label>{status&&<p className="error" role="alert">{status}</p>}<button className="button" disabled={busy||!agreed}>{busy?'Sending…':'Send enquiry'}<ArrowUpRight size={18}/></button></form></>}</DialogContent></Dialog></>
+  <Dialog open={open} onOpenChange={setOpen}><DialogContent className="enquiry-dialog">{success?<><Check size={30}/><DialogTitle>We have your enquiry.</DialogTitle><DialogDescription>Your details have been saved for the office. A representative will review your brief and contact you privately.</DialogDescription>{status&&<p role="status">{status}</p>}<button className="button" onClick={()=>setOpen(false)}>Close <ArrowRight size={18}/></button></>:<><p className="eyebrow">LET’S START A CONVERSATION</p><DialogTitle>Tell us what you have in mind.</DialogTitle><DialogDescription>Leave your details and the office will arrange a private property conversation.</DialogDescription><form onSubmit={submit} className="form-stack"><label>Your name<Input name="name" autoComplete="name" required maxLength={100}/></label><label>Email or phone<Input name="contact" autoComplete="email" required minLength={5} maxLength={160}/></label><label>Preferred next step<select name="request_type" required defaultValue="Private property brief"><option>Private property brief</option><option>Arrange a viewing or presentation</option><option>Discuss a specific residence</option></select></label><label>Purchase timeframe<select name="timeframe" defaultValue="Exploring options"><option>Exploring options</option><option>Within 3 months</option><option>3–6 months</option><option>6–12 months</option><option>More than 12 months</option></select></label><label>What are you looking for?<Textarea key={prefill} name="interest" required maxLength={2000} rows={4} defaultValue={prefill} placeholder="Destination, property type, intended use, timing or simply the question you want answered."/></label><Input name="website" tabIndex={-1} autoComplete="off" className="honeypot" aria-hidden="true"/><label className="check-row"><Checkbox checked={agreed} onCheckedChange={v=>setAgreed(v===true)}/><span>I agree to be contacted about this enquiry. <a href="/privacy">Privacy notice</a></span></label>{status&&<p className="error" role="alert">{status}</p>}<button className="button" disabled={busy||!agreed}>{busy?'Sending…':'Send enquiry'}<ArrowUpRight size={18}/></button></form></>}</DialogContent></Dialog></>
 }

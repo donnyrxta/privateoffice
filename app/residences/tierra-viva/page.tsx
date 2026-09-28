@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import PortfolioHeader from '@/components/portfolio-header';
 import PortfolioMotion from '@/components/portfolio-motion';
 import {tierraViva} from '@/lib/portfolio';
@@ -21,7 +20,7 @@ export default async function Page(){
         </div>
         <div className="po-project-hero-foot">
           <span>TIERRA VIVA · ARTIST’S IMPRESSION</span>
-          <Link href="#project-story">Explore project ↓</Link>
+          <a href="#project-story">Explore project ↓</a>
         </div>
       </section>
 
@@ -53,7 +52,7 @@ export default async function Page(){
           <h2>Move through<br/>the collection.</h2>
         </div>
         <div className="po-project-residence-list">
-          {tierraViva.residences.map((residence,index)=><Link key={residence.slug} className={'po-project-residence po-project-residence-'+(index+1)} href={'/residences/tierra-viva/'+residence.slug} data-po-reveal>
+          {tierraViva.residences.map((residence,index)=><a key={residence.slug} className={'po-project-residence po-project-residence-'+(index+1)} href={'/residences/tierra-viva/'+residence.slug} data-po-reveal>
             <div className="po-project-residence-media">
               <img src={residence.hero.src} srcSet={residence.hero.srcSet} sizes="100vw" alt={residence.hero.alt} style={{objectPosition:residence.hero.focal}} loading="lazy"/>
             </div>
@@ -62,7 +61,7 @@ export default async function Page(){
               <div><h3>{residence.name}</h3><p>{residence.bedrooms}</p></div>
               <span aria-hidden="true">↗</span>
             </div>
-          </Link>)}
+          </a>)}
         </div>
       </section>
 
@@ -82,8 +81,8 @@ export default async function Page(){
       </section>
 
       <section className="po-project-exit">
-        <Link href="/residences">← Portfolio</Link>
-        <Link href="/?enquire=Tierra%20Viva">Request a private presentation →</Link>
+        <a href="/residences">← Portfolio</a>
+        <a href="/?enquire=Tierra%20Viva">Request a private presentation →</a>
       </section>
     </main>
   </div>

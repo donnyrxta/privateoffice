@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import PortfolioHeader from '@/components/portfolio-header';
 import PortfolioMotion from '@/components/portfolio-motion';
 import {tierraViva} from '@/lib/portfolio';
@@ -23,10 +22,10 @@ export default async function Page(){
       </section>
 
       <section className="po-feature-project" aria-labelledby="featured-project">
-        <Link className="po-feature-media" href="/residences/tierra-viva" aria-label="Open Tierra Viva project brief">
+        <a className="po-feature-media" href="/residences/tierra-viva" aria-label="Open Tierra Viva project brief">
           <img src={tierraViva.hero.src} srcSet={tierraViva.hero.srcSet} sizes="100vw" alt={tierraViva.hero.alt} style={{objectPosition:tierraViva.hero.focal}} fetchPriority="high" data-po-parallax=".035"/>
           <span className="po-image-index">01 / PROJECT</span>
-        </Link>
+        </a>
         <div className="po-feature-copy" data-po-reveal>
           <p className="po-kicker">PROJECT COLLECTION · {tierraViva.location.toUpperCase()}, {tierraViva.country.toUpperCase()}</p>
           <h2 id="featured-project">{tierraViva.name}</h2>
@@ -36,7 +35,7 @@ export default async function Page(){
             <span>{tierraViva.facts[1].value}</span>
             <span>{tierraViva.residences.length} residence types</span>
           </div>
-          <Link className="po-arrow-link" href="/residences/tierra-viva">Explore Tierra Viva <span aria-hidden="true">→</span></Link>
+          <a className="po-arrow-link" href="/residences/tierra-viva">Explore Tierra Viva <span aria-hidden="true">→</span></a>
         </div>
       </section>
 
@@ -47,7 +46,7 @@ export default async function Page(){
           <p>Discover three distinct villa types. Ask us to confirm current availability and terms for your requirements.</p>
         </div>
         <div className="po-residence-composition">
-          {tierraViva.residences.map((residence,index)=><Link
+          {tierraViva.residences.map((residence,index)=><a
             key={residence.slug}
             href={'/residences/tierra-viva/'+residence.slug}
             className={'po-residence-tile po-residence-tile-'+(index+1)}
@@ -61,7 +60,7 @@ export default async function Page(){
               <div><strong>{residence.name}</strong><span>{residence.bedrooms}</span></div>
               <span aria-hidden="true">↗</span>
             </div>
-          </Link>)}
+          </a>)}
         </div>
       </section>
 

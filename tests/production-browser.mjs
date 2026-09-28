@@ -24,6 +24,11 @@ try{
   await page.waitForURL('**/residences');
   await page.getByRole('heading',{level:1}).waitFor();
   console.log('PASS residences navigation');
+  await page.getByRole('link',{name:'Explore Tierra Viva'}).click();
+  await page.waitForURL('**/residences/tierra-viva');
+  await page.getByRole('link',{name:'Request a private presentation'}).click();
+  await page.getByLabel('Your name').waitFor({state:'visible'});
+  console.log('PASS project detail and qualified enquiry navigation');
   await page.setViewportSize({width:390,height:844});
   await page.goto(base,{waitUntil:'networkidle'});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
