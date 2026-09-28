@@ -8,7 +8,7 @@ A restrained international property office serving Zimbabwe. Private Office is a
 
 The landing page contains one introduction and an enquiry action. Agent and office routes are working surfaces, with a primary task above the fold. No invented inventory, testimonials, prices, or partner badges. Synthetic visits are labelled Demonstration throughout. Render attribution remains visible.
 
-Tracking is explicit, session-bound and auditable. Opening the authenticated agent workspace creates the Private Office security session; starting an assigned customer visit creates a separate high-accuracy visit epoch. The installed native application is designed to maintain the active visit service through normal backgrounding and screen lock, while the browser prototype remains subject to browser/OS lifecycle limits. Coordinates always accompany reported accuracy and freshness. Stale data is never labelled live. Clients receive only their appointment's latest persisted position, not the full office evidence trail. Office histories require authenticated ownership. Terminal actions stop local acquisition and are not server-confirmed until the declared final sequence is persisted. Location is evidence about the registered device, not proof of physical identity by itself.
+Tracking is explicit, appointment-bound and auditable. Signing in or browsing does not request location. An approved agent starts an assigned visit after reading its purpose, access, retention and alternatives. The browser stops acquisition on backgrounding, navigation, pause, arrival and completion; resuming requires an explicit agent action. Coordinates always accompany reported accuracy and freshness. Stale data is never labelled live. Clients receive only their appointment's latest persisted position while sharing is active, not the full office evidence trail. Office histories require authenticated ownership. Terminal actions stop local acquisition and are not server-confirmed until the declared final sequence is persisted. Location describes the registered device, not proof of physical identity by itself.
 
 Forms, focus, status and error states share the same tokens. Body copy remains >=16px. Keyboard and reduced-motion support are mandatory. Large imagery has a local optimized fallback. No decorative dashboards or fabricated roads.
 
@@ -20,3 +20,12 @@ Forms, focus, status and error states share the same tokens. Body copy remains >
 - Arrival visibility is a quiet appointment feature. Detailed telemetry belongs in agent, office, privacy and diagnostic routes.
 - Property-facing pages use cinematic architecture, editorial hierarchy, generous negative space and restrained interaction; do not turn them into dashboards.
 - Full-bleed hero imagery must use a source at least 1600 px wide. Never stretch the 420×246 derivative across a hero. The supplied source package includes a 2000×1171 render and the connected Canva source is higher resolution.
+
+
+## Portfolio design system — mandatory
+
+All property-facing UI must comply with [PORTFOLIO_DESIGN_SYSTEM.md](./PORTFOLIO_DESIGN_SYSTEM.md).
+
+That document is normative and acts as a design merge gate. Its Anti-Slop Contract, Apple Interaction Contract, Luxury Composition Rules, Canva Property Media Contract, prohibited-pattern catalogue and PR acceptance checklist must be read before modifying the homepage, portfolio, project/residence detail pages or shared property components.
+
+If an implementation conflicts with that contract, the implementation must change unless the PR follows the documented exception protocol.

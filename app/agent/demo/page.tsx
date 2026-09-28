@@ -1,2 +1,2 @@
-import AgentWorkspace from '@/components/agent-workspace';
-export default function Page(){return <AgentWorkspace demo/>}
+import {redirect} from 'next/navigation';
+export default function Page(){redirect('/')}

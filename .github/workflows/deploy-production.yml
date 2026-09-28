@@ -1,0 +1,76 @@
+name: Deploy Private Office production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-office-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID || 'a6bc6b3e-2f9a-49d8-ae4a-e3515b57b61f' }}
+      CF_ACCESS_TEAM_DOMAIN: ${{ vars.CF_ACCESS_TEAM_DOMAIN }}
+      CF_ACCESS_AUD: ${{ vars.CF_ACCESS_AUD || '4edc937f72e68f57e6818dd9087a94856ca36d0ab7a31b8d0cf58671c9f16ef2' }}
+      PRIVATE_OFFICE_BUILD_SHA: ${{ github.sha }}
+      PRODUCTION_BASE_URL: https://private-office.donny-gee.workers.dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Require production deployment credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN repository secret"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID repository secret"; exit 1; }
+          test -n "$CF_ACCESS_TEAM_DOMAIN" || { echo "::error::Missing CF_ACCESS_TEAM_DOMAIN repository variable"; exit 1; }
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Worker
+        run: npm run build:cloudflare
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: API contract suite
+        run: npm run test:api
+
+      - name: Deploy exact built artifact
+        run: npm run deploy:built
+
+      - name: Verify deployed revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..20}; do
+            BODY="$(curl -fsS "$PRODUCTION_BASE_URL/api/health" || true)"
+            DEPLOYED_SHA="$(printf '%s' "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{process.stdout.write(JSON.parse(s).deployment?.git_sha||'')}catch{}})")"
+            if [ "$DEPLOYED_SHA" = "$PRIVATE_OFFICE_BUILD_SHA" ]; then
+              echo "Production is serving $DEPLOYED_SHA"
+              exit 0
+            fi
+            echo "Attempt $attempt: expected $PRIVATE_OFFICE_BUILD_SHA, got ${DEPLOYED_SHA:-<none>}"
+            sleep 3
+          done
+          echo "::error::Production did not converge to the Git revision that this workflow deployed"
+          exit 1
+
+      - name: Anonymous production contract
+        run: npm run verify:production -- "$PRODUCTION_BASE_URL"

@@ -17,26 +17,26 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 
 1. Create D1 database `private-office-d1`.
 2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID. Without it the build fails.
-3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, then `drizzle/0002_production_readiness.sql` to the remote database.
+3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, `drizzle/0003_agent_credentials.sql`, `drizzle/0004_agent_presence_gate.sql`, then `drizzle/0006_agent_interviews.sql` to the remote database.
 4. Run `npm run office:secret` and configure the printed `OFFICE_SETUP_HASH` as a runtime secret.
-5. Configure Cloudflare Access for agent/office routes and provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` to the Worker.
+5. Configure Cloudflare Access for `/office*` and `/api/office/*` only, then provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD`. Contracted agents use Private Office-issued credentials.
 6. Deploy from `main`.
 7. Confirm `GET /api/health` returns `"status":"ready"`, then run `npm run verify:production -- https://<domain>`.
 8. Activate the office with the one-time setup secret, confirm the `office` row, then rotate `OFFICE_SETUP_HASH`.
 
 Full checklist: `docs/GO_LIVE.md`.
 
-## Agent security session
+## Agent access and activation
 
-Opening the authenticated agent workspace enrolls or reconnects a browser device identity and opens an auditable security session. The browser generates a P-256 signing key and stores the non-extractable signing key in its local IndexedDB record. Relevant workspace lifecycle, network and location-provider events are queued locally and sent as signed security-event batches.
+Issue credentials from the authenticated office. The agent signs in and completes a saved professional profile and five screening interviews. An office reviewer reads the responses, records evidence-backed competency ratings and a reasoned activation decision. Credentials alone do not permit visit access; missing/pending screening returns `ONBOARDING_REQUIRED`. Existing agents also require review after this migration; there is no automatic grandfathered approval.
 
-If location permission has already been granted, the web prototype also records lower-frequency engaged-session location observations as security events while the agent workspace is active. The native shell is designed to start its native provider for the same engaged state.
+Device enrollment happens in the approved visit workspace. The browser creates a non-extractable P-256 key in IndexedDB. Enrollment itself does not request location. Signing in, interviews, public properties and page navigation do not collect location.
 
 ## Customer visit
 
-1. Office creates an assignment and sends the private agent/client links.
-2. Agent accepts the assignment with the current notice version.
-3. At departure the agent starts the visit. The server creates a new share epoch bound to the registered device.
+1. Office creates the contracted agent account once and gives the username/password directly to that agent.
+2. After human approval, office assigns a customer visit to that agent username and sends only the private arrival link to the intended client.
+3. The agent visits `/agent`, signs in, sees the assigned visit, and at departure starts the visit. The server creates a new share epoch bound to the registered device.
 4. The device requests the best practical fix and begins high-accuracy acquisition.
 5. Every callback is written to the local durable outbox with UUID + persistent sequence before transport.
 6. Batches are signed by the registered device key and sent to `/api/agent/visit/:id/observations`.
@@ -46,7 +46,7 @@ If location permission has already been granted, the web prototype also records 
 
 ## Offline behavior
 
-Loss of network changes health to `offline`; it does not intentionally clear acquisition. Observations continue to the local outbox while the browser/platform continues supplying them. Reconnect triggers batch replay. A lost server response is safe because exact UUID retries are idempotently ACKed.
+While the visit page remains visible, loss of network changes health to `offline`; it does not intentionally clear acquisition. Observations continue to the local outbox while the browser/platform continues supplying them. Reconnect triggers batch replay. A lost server response is safe because exact UUID retries are idempotently ACKed.
 
 ## Closing a visit
 
@@ -60,10 +60,19 @@ The server evaluates health from the latest persisted position of the active epo
 
 Retention runs daily at 01:00 UTC (03:00 Africa/Harare) from the Cron Trigger. Policy: `RETENTION_POLICY` in `lib/maintenance.ts`. The office dashboard triggers retention only if the scheduler is more than 26 h overdue. Before retention removes a visit you need to keep, export it from the visit review ("Export evidence package"). The export is an owner-only JSON package with visit, agent, device keys, per-epoch sequence proof, raw observations, rejections, audit and security events, client confirmation, and a SHA-256 digest.
 
-## Native shell
+## Browser lifecycle and earlier native exploration
 
-`native/` targets Capacitor 8, Capgo Background Geolocation and Capgo Fast SQL. Android visit tracking uses the native foreground/background provider with the persistent notification. iOS uses Core Location background behavior through the plugin. The native shell replaces acquisition/storage adapters; it does not change the Worker observation protocol.
+The website stops collection on hiding or leaving the visit page and queues a pause. Returning never silently restarts GPS. Final delivery/closure can remain pending while offline; the UI distinguishes stopped acquisition from server-confirmed closure.
+
+`native/` is an earlier unshipped exploration, not an enabled background-tracking feature or a prerequisite for this website release. Any future native product requires a separate approved scope and consent design.
 
 ## Physical-device acceptance
 
 Before live use, test at least two actual phones across: permission grant/revocation, screen lock, app backgrounding, network loss/recovery, process restart, poor GNSS conditions, duplicate retry, terminal close while offline, restart epoch, office revocation, and client freshness/accuracy display. Record the raw reported accuracy and timestamps for each test case.
+
+## Legacy presence gate
+
+The former location-before-content gate has been retired. `/api/agent/presence` returns 410 and does not accept new coordinates. Historical tables remain for migration compatibility and follow the configured retention policy. The public portfolio does not depend on an agent session or device fix.
+
+
+Integration with concurrent main updates: preserve migration `0005_agent_onboarding_screening.sql` and apply it before `0006_agent_interviews.sql`. Optional invitation-link screening is pre-credential intake; the contracted agent then completes the first-login professional interview for visit activation. Public residences never require GPS.

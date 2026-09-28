@@ -1,51 +1,74 @@
-import {ArrowRight,ArrowUpRight} from 'lucide-react';
-import {Header,PublicFooter} from '@/components/landing';
+import Link from 'next/link';
+import PortfolioHeader from '@/components/portfolio-header';
+import PortfolioMotion from '@/components/portfolio-motion';
+import {tierraViva} from '@/lib/portfolio';
 
-const HERO='https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_2_2_a4790ab5a2.jpg';
+export const metadata={title:'Portfolio | Private Office',description:'Architecture, residences and private off-plan property enquiries.'};
+export const dynamic='force-dynamic';
 
-export const metadata={title:'Private Residences | Private Office',description:'A considered selection of international off-plan property for private buyers.'};
+export default async function Page(){
+  return <div className="po-portfolio">
+    <PortfolioMotion/>
+    <PortfolioHeader/>
+    <main>
+      <section className="po-portfolio-intro">
+        <div data-po-reveal>
+          <p className="po-kicker">PRIVATE OFFICE · PORTFOLIO</p>
+          <h1>Selected property.<br/><em>Considered around you.</em></h1>
+        </div>
+        <div className="po-portfolio-intro-note" data-po-reveal>
+          <p>Explore the architecture and find the residence that speaks to your priorities. Discuss your requirements privately with our office.</p>
+          <div><span>COLLECTION NOTE</span><strong>Illustrative project collection</strong></div>
+        </div>
+      </section>
 
-export default function Page(){
-  return <div className="residences-page"><Header publicNav/><main>
-    <section className="residence-hero">
-      <img src={HERO} alt="Tierra Viva villa architectural render" fetchPriority="high"/>
-      <div className="residence-hero-shade"/>
-      <div className="residence-hero-copy">
-        <p className="eyebrow">PRIVATE RESIDENCES</p>
-        <h1>Exceptional property.<br/><em>Considered privately.</em></h1>
-        <p>International off-plan opportunities for buyers who value discretion, design and a more personal route to the right conversation.</p>
-        <a className="button light" href="/?enquire=private">Request a private brief <ArrowUpRight size={18}/></a>
-      </div>
-      <div className="residence-hero-index"><span>PRIVATE OFFICE</span><span>CURATED · INTERNATIONAL · OFF-PLAN</span></div>
-    </section>
+      <section className="po-feature-project" aria-labelledby="featured-project">
+        <Link className="po-feature-media" href="/residences/tierra-viva" aria-label="Open Tierra Viva project brief">
+          <img src={tierraViva.hero.src} srcSet={tierraViva.hero.srcSet} sizes="100vw" alt={tierraViva.hero.alt} style={{objectPosition:tierraViva.hero.focal}} fetchPriority="high" data-po-parallax=".035"/>
+          <span className="po-image-index">01 / PROJECT</span>
+        </Link>
+        <div className="po-feature-copy" data-po-reveal>
+          <p className="po-kicker">PROJECT COLLECTION · {tierraViva.location.toUpperCase()}, {tierraViva.country.toUpperCase()}</p>
+          <h2 id="featured-project">{tierraViva.name}</h2>
+          <p className="po-feature-lede">{tierraViva.positioning}</p>
+          <div className="po-feature-meta">
+            <span>{tierraViva.facts[0].value}</span>
+            <span>{tierraViva.facts[1].value}</span>
+            <span>{tierraViva.residences.length} residence types</span>
+          </div>
+          <Link className="po-arrow-link" href="/residences/tierra-viva">Explore Tierra Viva <span aria-hidden="true">→</span></Link>
+        </div>
+      </section>
 
-    <section className="residence-feature">
-      <div className="residence-feature-copy">
-        <p className="eyebrow">FEATURED RESIDENCE · BENAHAVÍS, SPAIN</p>
-        <h2>Tierra Viva</h2>
-        <p className="residence-lede">A gated collection of ultra-luxury villas in the hills of Benahavís, developed by DarGlobal with design inspired by Automobili Lamborghini.</p>
-        <p>Set above the Costa del Sol, the villas are positioned at varied elevations for Mediterranean views. The development is currently under construction and spans 4- to 6-bedroom villa typologies.</p>
-        <a className="text-link" href="/?enquire=Tierra%20Viva">Request the private brief <ArrowRight size={18}/></a>
-      </div>
-      <div className="residence-facts" aria-label="Tierra Viva overview">
-        <div><span>LOCATION</span><strong>Benahavís · Spain</strong></div>
-        <div><span>PROPERTY TYPE</span><strong>Ultra-luxury villas</strong></div>
-        <div><span>STATUS</span><strong>Under development</strong></div>
-        <div><span>RESIDENCE TYPES</span><strong>4–6 bedrooms</strong></div>
-      </div>
-    </section>
+      <section className="po-residence-index">
+        <div className="po-section-heading" data-po-reveal>
+          <p className="po-kicker">TIERRA VIVA · RESIDENCE TYPES</p>
+          <h2>Three expressions<br/>of the hillside.</h2>
+          <p>Discover three distinct villa types. Ask us to confirm current availability and terms for your requirements.</p>
+        </div>
+        <div className="po-residence-composition">
+          {tierraViva.residences.map((residence,index)=><Link
+            key={residence.slug}
+            href={'/residences/tierra-viva/'+residence.slug}
+            className={'po-residence-tile po-residence-tile-'+(index+1)}
+            data-po-reveal
+          >
+            <div className="po-residence-image">
+              <img src={residence.hero.src} srcSet={residence.hero.srcSet} sizes="100vw" alt={residence.hero.alt} style={{objectPosition:residence.hero.focal}} loading="lazy"/>
+              <span>{String(index+1).padStart(2,'0')}</span>
+            </div>
+            <div className="po-residence-caption">
+              <div><strong>{residence.name}</strong><span>{residence.bedrooms}</span></div>
+              <span aria-hidden="true">↗</span>
+            </div>
+          </Link>)}
+        </div>
+      </section>
 
-    <section className="residence-process">
-      <div className="residence-process-intro"><p className="eyebrow">THE PRIVATE OFFICE APPROACH</p><h2>Less browsing.<br/>Better conversations.</h2></div>
-      <div className="residence-steps">
-        <article><span>01</span><h3>Define the brief</h3><p>Destination, intended use, timing, budget range and what would make the property worth pursuing.</p></article>
-        <article><span>02</span><h3>Curate the opportunity</h3><p>We narrow the conversation to relevant developments and organise the information needed to evaluate them properly.</p></article>
-        <article><span>03</span><h3>Make the introduction</h3><p>When the fit is right, the office coordinates the appropriate property conversation and appointment discreetly.</p></article>
-      </div>
-    </section>
-
-    <section className="residence-note">
-      <p>Project information is sourced from the developer and may change. Availability, commercial terms and representation are confirmed at enquiry; Private Office does not imply a current developer affiliation or sales mandate.</p>
-    </section>
-  </main><PublicFooter/></div>
+      <section className="po-portfolio-truth" data-po-reveal>
+        <div><span>ILLUSTRATIVE COLLECTION</span><strong>Enquire for current options</strong></div>
+        <p>Architectural renders illustrate the project and are not a live inventory feed. Availability, pricing and Private Office representation must be confirmed for your enquiry.</p>
+      </section>
+    </main>
+  </div>
 }
