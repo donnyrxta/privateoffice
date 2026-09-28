@@ -6,7 +6,7 @@ This runbook supersedes the earlier always-on presence/native-app launch checkli
 
 1. Keep the existing D1 database; do not create a replacement for an existing deployment. Confirm binding `DB` and the real `CLOUDFLARE_D1_DATABASE_ID` build variable.
 2. Apply missing migrations in order, once each: 0000 through 0004, then `drizzle/0006_agent_interviews.sql`. Back up first. Existing credential accounts must complete onboarding and human review before their next visit.
-3. Protect `/office*` and `/api/office/*` with Cloudflare Access; set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`. Leave public property routes and credential sign-in reachable.
+3. Create a **hostname/path self-hosted Cloudflare Access application** for `/office*` and `/api/office/*`; do not use Worker-level Access because the public site and agent sign-in share this Worker. Set `CF_ACCESS_TEAM_DOMAIN` and the live application’s `CF_ACCESS_AUD`. See `docs/CLOUDFLARE_ACCESS.md`.
 4. Bootstrap the office only if not already configured, using `OFFICE_SETUP_HASH` and the existing setup flow. Never re-bootstrap a working office.
 5. Build with `npm run build:cloudflare`; deploy with `npm run deploy:built`. A test build without D1 must not be deployed.
 6. Verify `/api/health`: current schema, configured Access, office state and cron heartbeats. Run `npm run verify:production -- https://<domain>`.
