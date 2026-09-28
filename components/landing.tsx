@@ -1,33 +1,69 @@
 'use client';
-import {ArrowUpRight} from 'lucide-react';
-import AgentLoginForm from './agent-login-form';
+import Link from 'next/link';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {useState} from 'react';
+import {ArrowUpRight,ArrowRight,Check} from 'lucide-react';
+import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import {Checkbox} from '@/components/ui/checkbox';
 
-const HERO='https://cdn.darglobal.co.uk/DG_AL_Diamente_Villa_Ext_2_2_a4790ab5a2.jpg';
+const HERO='/assets/villa-hero-2000.webp';
 
-export function Brand(){return <a className="brand" href="/" aria-label="Private Office home"><span className="brand-mark" aria-hidden="true">╱</span><span>PRIVATE OFFICE<small>PROPERTY & PEOPLE</small></span></a>}
+export function Brand(){
+  return <Link className="brand" href="/" aria-label="Private Office home"><span className="brand-mark" aria-hidden="true">╱</span><span>PRIVATE OFFICE<small>PROPERTY & PEOPLE</small></span></Link>
+}
 
-export function Header({publicNav=false}:{publicNav?:boolean}){return <header className="site-header"><Brand/><nav aria-label="Main navigation">{publicNav?<><a href="/">Agent access <ArrowUpRight size={15}/></a><a href="/office">The office <ArrowUpRight size={15}/></a></>:<><a href="/">Agent access <ArrowUpRight size={15}/></a><a href="/office">The office <ArrowUpRight size={15}/></a></>}</nav></header>}
+export function Header({publicNav=false}:{publicNav?:boolean}){
+  return <header className="site-header"><Brand/><nav aria-label="Main navigation">{publicNav?<><Link href="/residences">Residences <ArrowUpRight size={15}/></Link><Link href="/?enquire=private">Private enquiry <ArrowUpRight size={15}/></Link><Link href="/agent">Agent sign in</Link></>:<><Link href="/agent">Agent access <ArrowUpRight size={15}/></Link><Link href="/office">The office <ArrowUpRight size={15}/></Link></>}</nav></header>
+}
 
-export function PublicFooter(){return <footer><Brand/><span>Zimbabwe · Private property representation</span><a href="/privacy">Privacy</a></footer>}
+export function PublicFooter(){
+  return <footer><Brand/><span>Zimbabwe · International property enquiries</span><Link href="/privacy">Privacy</Link></footer>
+}
 
-export default function Landing(){
-  return <main className="portal-landing">
-    <img className="portal-hero-image" src={HERO} alt="Contemporary Tierra Viva villa architectural render" fetchPriority="high"/>
-    <div className="portal-shade"/>
-    <div className="portal-top"><Brand/><a href="/office" className="portal-office-link">The office <ArrowUpRight size={15}/></a></div>
-    <section className="portal-copy">
-      <p className="eyebrow">PRIVATE OFFICE · REPRESENTATIVE ACCESS</p>
-      <h1>Private property.<br/><em>Professional representation.</em></h1>
-      <p>Access for contracted Private Office real estate agents. Your portfolio, client appointments and visit tools sit behind verified agent credentials and a fresh device location.</p>
-      <div className="portal-index"><span>ZIMBABWE</span><span>INTERNATIONAL OFF-PLAN PROPERTY</span></div>
+export default function Landing({initialEnquiry=""}:{initialEnquiry?:string}){
+  const[open,setOpen]=useState(!!initialEnquiry);
+  const[agreed,setAgreed]=useState(false);
+  const[status,setStatus]=useState('');
+  const[busy,setBusy]=useState(false);
+  const[success,setSuccess]=useState(false);
+  const prefill=initialEnquiry==='private'?'I would like to discuss a private off-plan property brief.':initialEnquiry?'I would like a private brief on '+initialEnquiry+'.':'';
+
+  async function submit(e:React.FormEvent<HTMLFormElement>){
+    e.preventDefault();setBusy(true);setStatus('');
+    const data=Object.fromEntries(new FormData(e.currentTarget));
+    try{
+      const r=await fetch('/api/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,consent:agreed})});
+      const d=await r.json() as {error?:string;reference?:string};
+      if(!r.ok)throw Error(d.error||'Could not send your enquiry.');
+      setStatus(d.reference ? `Reference ${d.reference}` : '');setSuccess(true);
+    }catch(e){setStatus((e as Error).message)}
+    finally{setBusy(false)}
+  }
+
+  return <><div className="landing"><Header publicNav/><main>
+    <section className="hero">
+      <img className="hero-image" src={HERO} srcSet="/assets/villa-hero-720.webp 720w, /assets/villa-hero-1280.webp 1280w, /assets/villa-hero-2000.webp 2000w" sizes="100vw" width={2000} height={1171} alt="Contemporary Tierra Viva villa architectural render" fetchPriority="high"/>
+      <div className="hero-shade"/>
+      <div className="hero-content">
+        <p className="eyebrow">INTERNATIONAL PROPERTY. LOCAL CONNECTION.</p>
+        <h1>A world of possibility.<br/><em>A personal introduction.</em></h1>
+        <p className="hero-description">Exceptional homes. Considered introductions.<br/>Your property conversation, closer to home.</p>
+        <button className="button light" onClick={()=>setOpen(true)}>Make an enquiry <ArrowUpRight size={20}/></button>
+      </div>
+      <div className="hero-bottom"><span>ZIMBABWE <span className="tiny-line"/> INTERNATIONALLY CONNECTED</span><span>01 <span className="tiny-line"/> TIERRA VIVA · ARTIST’S IMPRESSION</span></div>
     </section>
-    <section className="portal-login-card" aria-label="Agent sign in">
-      <p className="eyebrow">AGENT SIGN IN</p>
-      <h2>Enter your private office.</h2>
-      <p className="portal-login-intro">Use the username and password issued to you by Private Office.</p>
-      <AgentLoginForm className="portal-login-form"/>
-      <p className="portal-location-note">After sign-in, precise location verification is required before the portfolio or dashboard opens. Location must remain available while the session is in use.</p>
+
+    <section className="intro">
+      <p className="eyebrow">PERSONAL, FROM THE FIRST CONVERSATION</p>
+      <div>
+        <h2>Good property decisions<br/>begin with the right people.</h2>
+        <p>A considered approach to international off-plan property, shaped around your priorities, your timing and the way you want to buy.</p>
+        <Link className="text-link" href="/residences">Explore private residences <ArrowRight size={18}/></Link>
+      </div>
+      <span className="intro-note">A private conversation.<br/>A considered next step.</span>
     </section>
-    <div className="portal-bottom"><span>AUTHORIZED REPRESENTATIVES ONLY</span><a href="/privacy">Privacy & operational notice</a></div>
-  </main>
+  </main><PublicFooter/></div>
+
+  <Dialog open={open} onOpenChange={setOpen}><DialogContent className="enquiry-dialog">{success?<><Check size={30}/><DialogTitle>We have your enquiry.</DialogTitle><DialogDescription>Your details have been saved for the office. A representative will review your brief and contact you privately.</DialogDescription>{status&&<p role="status">{status}</p>}<button className="button" onClick={()=>setOpen(false)}>Close <ArrowRight size={18}/></button></>:<><p className="eyebrow">LET’S START A CONVERSATION</p><DialogTitle>Tell us what you have in mind.</DialogTitle><DialogDescription>Leave your details and the office will arrange a private property conversation.</DialogDescription><form onSubmit={submit} className="form-stack"><label>Your name<Input name="name" autoComplete="name" required maxLength={100}/></label><label>Email or phone<Input name="contact" autoComplete="email" required minLength={5} maxLength={160}/></label><label>Preferred next step<select name="request_type" required defaultValue="Private property brief"><option>Private property brief</option><option>Arrange a viewing or presentation</option><option>Discuss a specific residence</option></select></label><label>Purchase timeframe<select name="timeframe" defaultValue="Exploring options"><option>Exploring options</option><option>Within 3 months</option><option>3–6 months</option><option>6–12 months</option><option>More than 12 months</option></select></label><label>What are you looking for?<Textarea key={prefill} name="interest" required maxLength={2000} rows={4} defaultValue={prefill} placeholder="Destination, property type, intended use, timing or simply the question you want answered."/></label><Input name="website" tabIndex={-1} autoComplete="off" className="honeypot" aria-hidden="true"/><label className="check-row"><Checkbox checked={agreed} onCheckedChange={v=>setAgreed(v===true)}/><span>I agree to be contacted about this enquiry. <Link href="/privacy">Privacy notice</Link></span></label>{status&&<p className="error" role="alert">{status}</p>}<button className="button" disabled={busy||!agreed}>{busy?'Sending…':'Send enquiry'}<ArrowUpRight size={18}/></button></form></>}</DialogContent></Dialog></>
 }

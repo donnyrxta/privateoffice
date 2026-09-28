@@ -1,6 +1,6 @@
 import {redirect} from 'next/navigation';
-import {getAgentSession,hasFreshPreciseLocation} from '@/lib/agent-auth';
+import {getAgentSession} from '@/lib/agent-auth';
+import {getOnboarding} from '@/lib/onboarding';
 import AgentWorkspace from '@/components/agent-workspace';
-import AgentPresenceGuard from '@/components/agent-presence-guard';
 export const dynamic='force-dynamic';
-export default async function Page(){const session=await getAgentSession();if(!session)redirect('/');if(!hasFreshPreciseLocation(session))redirect('/agent/location');return <><AgentPresenceGuard/><AgentWorkspace/></>}
+export default async function Page(){const session=await getAgentSession();if(!session)redirect('/agent/sign-in');const profile=await getOnboarding(session.user.userId);if(profile.status!=='approved')redirect('/agent/onboarding');return <AgentWorkspace/>}

@@ -1,5 +1,2 @@
-import {redirect} from 'next/navigation';
 import Landing from '@/components/landing';
-import {getAgentSession,hasFreshPreciseLocation} from '@/lib/agent-auth';
-export const dynamic='force-dynamic';
-export default async function Home(){const session=await getAgentSession();if(session)redirect(hasFreshPreciseLocation(session)?'/agent':'/agent/location');return <Landing/>}
+export default async function Home({searchParams}:{searchParams:Promise<{enquire?:string}>}){const {enquire=''}=await searchParams;return <Landing key={enquire} initialEnquiry={enquire.slice(0,200)}/>}
