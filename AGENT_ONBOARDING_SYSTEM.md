@@ -124,6 +124,8 @@ generated_at
 
 The office sees the underlying responses and the derived map. Approval remains an explicit human action.
 
+After approval, the operational agent account projects the screening-derived professional profile — experience, markets, specialisms, languages, archetype and dimension map — through the existing office agent view. The application remains the source record; manual/legacy accounts are explicitly shown as having no screening-derived profile rather than receiving inferred data.
+
 ## 8. Profile archetypes
 
 Archetypes are descriptive summaries, not rankings:
