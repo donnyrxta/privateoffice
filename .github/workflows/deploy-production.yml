@@ -59,7 +59,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Initial wait for Cloudflare edge propagation after deployment
           echo "Waiting for Cloudflare edge propagation..."
           sleep 30
           for attempt in {1..40}; do
@@ -69,8 +68,13 @@ jobs:
               sleep 5
               continue
             fi
-            BODY="$(curl -fsS "$PRODUCTION_BASE_URL/api/health" || true)"
-            DEPLOYED_SHA="$(printf '%s' "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{process.stdout.write(JSON.parse(s).deployment?.git_sha||'')}}catch{}})"
+            BODY=$(curl -fsS "$PRODUCTION_BASE_URL/api/health" || true)
+            DEPLOYED_SHA=$(printf '%s' "$BODY" | node -e "
+              let s = '';
+              process.stdin.on('data', d => s += d).on('end', () => {
+                try { process.stdout.write(JSON.parse(s).deployment?.git_sha || '') } catch {}
+              });
+            ")
             if [ "$DEPLOYED_SHA" = "$PRIVATE_OFFICE_BUILD_SHA" ]; then
               echo "Production is serving $DEPLOYED_SHA"
               exit 0
