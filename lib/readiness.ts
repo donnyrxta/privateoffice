@@ -38,7 +38,7 @@ export async function checkReadiness(env:RuntimeEnv,now=Date.now()):Promise<Read
     const tables=new Set((await d1.prepare("SELECT name FROM sqlite_master WHERE type='table'").all<{name:string}>()).results.map(t=>t.name));
     r.schema.missing_tables=REQUIRED_TABLES.filter(t=>!tables.has(t));
     const inspect=Object.keys(REQUIRED_COLUMNS).filter(t=>tables.has(t));
-    const infos=inspect.length?await d1.batch(inspect.map(t=>d1.prepare(`PRAGMA table_info("${t}")`)):[];
+    const infos=inspect.length?await d1.batch(inspect.map(t=>d1.prepare(`PRAGMA table_info("${t}")`))):[];
     inspect.forEach((t,i)=>{const cols=new Set(((infos[i]?.results??[]) as {name:string}[]).map(c=>c.name));for(const c of REQUIRED_COLUMNS[t])if(!cols.has(c))r.schema.missing_columns.push(`${t}.${c}`)});
     if(tables.has('schema_migrations'))r.schema.version=(await d1.prepare('SELECT version FROM schema_migrations WHERE version=?').bind(SCHEMA_VERSION).first<{version:string}>())?.version??null;
     r.schema.ok=!r.schema.missing_tables.length&&!r.schema.missing_columns.length&&r.schema.version===SCHEMA_VERSION;
