@@ -60,15 +60,15 @@ jobs:
         run: |
           set -euo pipefail
           echo "Waiting for Cloudflare edge propagation..."
-          sleep 90
-          for attempt in {1..30}; do
+          sleep 10
+          for attempt in {1..12}; do
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$PRODUCTION_BASE_URL/api/health" || echo "000")
-            if [ "$HTTP_CODE" = "503" ] || [ "$HTTP_CODE" = "000" ]; then
+            if [ "$HTTP_CODE" = "000" ]; then
               echo "Attempt $attempt: health endpoint returned $HTTP_CODE (edge propagating), waiting..."
               sleep 10
               continue
             fi
-            BODY=$(curl -fsS "$PRODUCTION_BASE_URL/api/health" || true)
+            BODY=$(curl -sS --max-time 20 "$PRODUCTION_BASE_URL/api/health" || true)
             DEPLOYED_SHA=$(printf '%s' "$BODY" | node -e "
               let s = '';
               process.stdin.on('data', d => s += d).on('end', () => {
