@@ -36,7 +36,7 @@ for(const path of ['/office','/api/office/visits']){
   try{
     const r=await get(path);const loc=r.headers.get('location')||'';
     if(r.status>=300&&r.status<400&&/cloudflareaccess\.com/i.test(loc))pass(`${path} → ${r.status} Cloudflare Access login`);
-    else if(r.status===401||r.status===403)warn(`${path} → ${r.status} from the application. Denied, but Cloudflare Access does not appear to be in front of this path.`);
+    else if(r.status===401||r.status===403)fail(`${path} → ${r.status} from the application. Cloudflare Access is not in front of this required admin path.`);
     else if(r.status>=300&&r.status<400)warn(`${path} → ${r.status} redirect to ${loc||'(none)'} — confirm this is the Access login.`);
     else fail(`${path} → ${r.status} for an anonymous visitor`);
   }catch(e){fail(`${path} unreachable: ${e.message}`)}
