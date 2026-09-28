@@ -21,7 +21,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID || 'a6bc6b3e-2f9a-49d8-ae4a-e3515b57b61f' }}
       CF_ACCESS_TEAM_DOMAIN: ${{ vars.CF_ACCESS_TEAM_DOMAIN }}
-      CF_ACCESS_AUD: ${{ vars.CF_ACCESS_AUD || '4edc937f72e68f57e6818dd9087a94856ca36d0ab7a31b8d0cf58671c9f16ef2' }}
+      CF_ACCESS_AUD: ${{ vars.CF_ACCESS_AUD }}
       PRIVATE_OFFICE_BUILD_SHA: ${{ github.sha }}
       PRODUCTION_BASE_URL: https://private-office.donny-gee.workers.dev
 
@@ -39,6 +39,8 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN repository secret"; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID repository secret"; exit 1; }
           test -n "$CF_ACCESS_TEAM_DOMAIN" || { echo "::error::Missing CF_ACCESS_TEAM_DOMAIN repository variable"; exit 1; }
+          test -n "$CF_ACCESS_AUD" || { echo "::error::Missing CF_ACCESS_AUD repository variable"; exit 1; }
+          [[ "$CF_ACCESS_AUD" =~ ^[0-9a-fA-F]{64}$ ]] || { echo "::error::CF_ACCESS_AUD must be the 64-character Application Audience tag from the live Access application"; exit 1; }
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund

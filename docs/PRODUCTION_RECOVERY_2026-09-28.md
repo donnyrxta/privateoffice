@@ -21,3 +21,15 @@ The owner page now initiates Cloudflare Access login using the configured team a
 ## Reproduced public navigation regression
 
 Production browser run 36382277821 proved the enquiry modal opens, then reproduced an uncaught `e is not a function` during client-router navigation from the homepage to agent access. Server routes separately returned the correct redirects and credential page. Replace framework Link interception with native anchors on the landing page, shared portfolio header and portfolio/detail pages. Preserve every class, image and composition. This deliberately trades client-side transitions for dependable browser navigation until the Vinext router defect is isolated. Browser verification now clicks through agent sign-in, portfolio, project detail, project enquiry, and mobile sign-in; no production records are created. TypeScript passes.
+
+
+## Access application mismatch
+
+Production evidence then showed two facts at the same time:
+
+- the Worker Access tab reported **This Worker is not protected by Access**;
+- opening the generated team-login URL returned **Unable to find your Access application**.
+
+The failing URL used the deployment fallback AUD as `kid`, but no matching Access application existed. That redirect was application-generated, not proof that Cloudflare Access protected the route.
+
+Correction is path-scoped: create a self-hosted Access application for `/office*` and `/api/office/*`, keep public/agent routes outside Access, copy the live application AUD into the GitHub `CF_ACCESS_AUD` variable, and remove all fallback/direct-login construction. See `docs/CLOUDFLARE_ACCESS.md`.

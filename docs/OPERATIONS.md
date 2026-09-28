@@ -19,7 +19,7 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID. Without it the build fails.
 3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, `drizzle/0003_agent_credentials.sql`, `drizzle/0004_agent_presence_gate.sql`, then `drizzle/0006_agent_interviews.sql` to the remote database.
 4. Run `npm run office:secret` and configure the printed `OFFICE_SETUP_HASH` as a runtime secret.
-5. Configure Cloudflare Access for `/office*` and `/api/office/*` only, then provide `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD`. Contracted agents use Private Office-issued credentials.
+5. Configure a hostname/path self-hosted Cloudflare Access app for `/office*` and `/api/office/*` only. Do **not** use Worker-level Access. Copy the live app AUD into `CF_ACCESS_AUD` and set `CF_ACCESS_TEAM_DOMAIN`. See `docs/CLOUDFLARE_ACCESS.md`.
 6. Deploy from `main`.
 7. Confirm `GET /api/health` returns `"status":"ready"`, then run `npm run verify:production -- https://<domain>`.
 8. Activate the office with the one-time setup secret, confirm the `office` row, then rotate `OFFICE_SETUP_HASH`.

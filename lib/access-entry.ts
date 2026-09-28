@@ -7,13 +7,3 @@ export function accessToken(headers: Headers): string | null {
   if (values.length !== 1) return null;
   return values[0].slice('CF_Authorization='.length) || null;
 }
-
-export function officeLoginURL(team: string | undefined, audience: string | undefined): string | null {
-  if (!team || !audience || !/^[a-f0-9]{64}$/i.test(audience)) return null;
-  const domain = team.trim().replace(/^https:\/\//, '').replace(/\/$/, '');
-  if (!/^[a-z0-9-]+\.cloudflareaccess\.com$/i.test(domain)) return null;
-  const url = new URL(`https://${domain}/cdn-cgi/access/login/private-office.donny-gee.workers.dev`);
-  url.searchParams.set('kid', audience);
-  url.searchParams.set('redirect_url', '/office');
-  return url.toString();
-}
