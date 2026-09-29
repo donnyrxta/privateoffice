@@ -1,3 +1,4 @@
+import {screeningLocation,requireScreeningLocation,SCREENING_LOCATION_VERSION} from '@/lib/screening-location';
 import {body,db,hash,HttpError,json,optionalStr,rate,str,wrap} from '@/lib/server';
 import {classifyScreening,publicScreening,SCREENING_QUESTIONS,SCREENING_VERSION,screeningComplete} from '@/lib/screening';
 
@@ -31,7 +32,7 @@ function safeApplication(row:any){
 
 export async function GET(_:Request,{params}:{params:Promise<{token:string}>}){return wrap(async()=>{
   const {token}=await params,invite=await inviteFor(token),application=await applicationFor(invite.id);
-  return json({invite:{status:invite.status,intended_email:invite.intended_email,expires_at:invite.expires_at},application:safeApplication(application),screening:publicScreening()});
+  return json({invite:{status:invite.status,intended_email:invite.intended_email,expires_at:invite.expires_at},application:safeApplication(application),screening:publicScreening(),location:await screeningLocation(invite.id)});
 })}
 
 export async function POST(req:Request,{params}:{params:Promise<{token:string}>}){return wrap(async()=>{
@@ -39,6 +40,20 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
   await rate('onboarding:'+invite.id+':'+ip,120,60*60*1000);
   let application=await applicationFor(invite.id);
   if(application&&application.status!=='draft')throw new HttpError(409,'This application has already been submitted for review.');
+
+  if(b.action==='location'){
+    if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Confirm the screening location notice before sharing.');
+    const {lat,lng,accuracy,recorded_at}=b,now=Date.now();
+    if(![lat,lng,accuracy,recorded_at].every(v=>typeof v==='number'&&Number.isFinite(v))||Math.abs(lat)>90||Math.abs(lng)>180||accuracy<=0||accuracy>10000||recorded_at<now-60000||recorded_at>now+10000)throw new HttpError(400,'A current, valid device location is required.');
+    await db().prepare("INSERT INTO screening_location_checks (id,invite_id,kind,lat,lng,accuracy,recorded_at,received_at,consent_version) VALUES (?,?,'location',?,?,?,?,?,?)").bind(crypto.randomUUID(),invite.id,lat,lng,accuracy,recorded_at,now,SCREENING_LOCATION_VERSION).run();
+    return json({ok:true,location:await screeningLocation(invite.id)});
+  }
+  if(b.action==='manual_location_request'){
+    const note=str(b.reason,600,10);
+    await db().prepare("INSERT INTO screening_location_checks (id,invite_id,kind,received_at,note) VALUES (?,?,'manual_requested',?,?)").bind(crypto.randomUUID(),invite.id,Date.now(),note).run();
+    return json({ok:true,location:await screeningLocation(invite.id)});
+  }
+  await requireScreeningLocation(invite.id,b.action==='submit'?120000:900000);
 
   if(b.action==='save_profile'){
     const agentEmail=emailValue(b.email);

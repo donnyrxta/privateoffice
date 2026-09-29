@@ -20,12 +20,22 @@ export async function GET(){return wrap(async()=>{await owner();
   const invites=await db().prepare(`SELECT i.id,i.intended_email,i.status,i.created_at,i.expires_at,i.opened_at,i.submitted_at,
     (SELECT a.id FROM agent_applications a WHERE a.invite_id=i.id LIMIT 1) AS application_id
     FROM agent_onboarding_invites i ORDER BY i.created_at DESC LIMIT 40`).all<any>();
-  return json({applications:apps.results.map(applicationOut),invites:invites.results});
+  const checks=await db().prepare('SELECT * FROM screening_location_checks ORDER BY received_at DESC LIMIT 300').all();
+  return json({applications:apps.results.map(applicationOut),invites:invites.results,location_checks:checks.results});
 })}
 
 export async function POST(req:Request){return wrap(async()=>{
   const u=await owner(),b=await body(req);await rate('office-onboarding:'+u.userId,60,60*60*1000);
 
+  if(b.action==='allow_manual_screening'){
+    const id=str(b.invite_id,100),note=str(b.review_note,600,10);
+    const invite=await db().prepare("SELECT id FROM agent_onboarding_invites WHERE id=? AND revoked_at IS NULL AND expires_at>? AND status IN ('issued','opened')").bind(id,Date.now()).first();
+    if(!invite)throw new HttpError(409,'This invitation is not active.');
+    const requested=await db().prepare("SELECT id FROM screening_location_checks WHERE invite_id=? AND kind='manual_requested' LIMIT 1").bind(id).first();
+    if(!requested)throw new HttpError(409,'The candidate must request manual screening first.');
+    await db().prepare("INSERT INTO screening_location_checks (id,invite_id,kind,received_at,note,reviewer_id) VALUES (?,?,'manual_approved',?,?,?)").bind(crypto.randomUUID(),id,Date.now(),note,u.userId).run();
+    return json({ok:true});
+  }
   if(b.action==='invite'){
     const intendedEmail=emailValue(b.email),raw=token(),id=crypto.randomUUID(),now=Date.now(),expires=now+7*86400000;
     await db().prepare('INSERT INTO agent_onboarding_invites (id,token_hash,intended_email,status,created_at,expires_at) VALUES (?,?,?,?,?,?)').bind(id,await hash(raw),intendedEmail,'issued',now,expires).run();

@@ -1,3 +1,5 @@
+> Current owner instruction (28 September 2026): public access is limited to the property splash, enquiry/privacy, sign-in and capability-based invitation/client pages. Full portfolio routes require an issued agent session. Screening requests an explicit device-location check-in with a human-approved manual alternative; location is never part of expertise scoring. Visit sharing remains explicit and foreground-only. This supersedes earlier public-portfolio and visit-only location rules. See docs/PRIVATE_SCREENING_RELEASE_2026-09-28.md.
+
 > Current access correction (27 September 2026): portfolio pages are public. Agent sign-in is `/agent/sign-in`; first-login interviews and human approval precede visits. Presence-gate descriptions and re-lock states below are historical and superseded by AGENTS.md. Retain the property/media ontology and architectural viewer composition.
 
 # Private Office — Portfolio Wireframes

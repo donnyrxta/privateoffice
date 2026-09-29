@@ -59,6 +59,8 @@ jobs:
           npx wrangler d1 execute private-office-d1 --remote --config dist/server/wrangler.json --file drizzle/0005_agent_onboarding_screening.sql
           npx wrangler d1 execute private-office-d1 --remote --config dist/server/wrangler.json --file drizzle/0006_agent_interviews.sql
 
+          npx wrangler d1 execute private-office-d1 --remote --config dist/server/wrangler.json --file drizzle/0007_screening_location.sql
+
       - name: Deploy exact built artifact
         id: deploy
         run: npm run deploy:built

@@ -107,3 +107,7 @@ Folder: `FAFnN_lBXaI`
 | `MAFnN51E-Rc` | DG.AL_TierraViva Aerial 3.jpg |
 
 These IDs are provenance references. Do not embed temporary Canva thumbnail URLs in production.
+
+## 28 September splash assets
+
+Canva folders FAFnNzU9ibc (Zafiro) and FAFnN2fIZnU (Esmeralda) were rechecked. Splash uses three residence types from the same Tierra Viva project, not invented separate developments. Source-matched official DarGlobal renders were downloaded at 2000×1171 and encoded locally at WebP quality 88: `zafiro-splash.webp` (Canva MAFnN3U-GyY) and `esmeralda-splash.webp` (Canva MAFnNtRvN-A). Existing local Diamante derivatives are retained. Never use the 200px Canva thumbnails as hero images. Full source URLs remain in lib/portfolio.ts.

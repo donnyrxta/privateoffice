@@ -15,9 +15,10 @@ async function api(path,data){const r=await mf.dispatchFetch(origin+path,{method
 await api('/api/office/setup',{key:setup});
 const invited=await api('/api/office/agents',{full_name:'Browser Test Agent',username:'browser.agent',email:'agent@example.invalid'});
 const visit=await api('/api/office/visits',{agent_username:'browser.agent',client_name:'Test Client',property:'Synthetic QA appointment',meeting:'Synthetic test meeting',lat:-17.79,lng:31.06,scheduled_at:Date.now()+7200000});
+const candidate=await api('/api/office/onboarding',{action:'invite',email:'candidate@example.invalid'});
 const mime={'.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.woff2':'font/woff2','.ico':'image/x-icon'};
 const server=createServer(async(req,res)=>{try{
-const url=new URL(req.url,origin);if(url.pathname==='/__test/fixture'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify({username:'browser.agent',password:invited.password,agentId:invited.agent.id,visitId:visit.id}));return}
+const url=new URL(req.url,origin);if(url.pathname==='/__test/fixture'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify({username:'browser.agent',password:invited.password,agentId:invited.agent.id,visitId:visit.id,screeningPath:candidate.invite.path}));return}
 const relative=decodeURIComponent(url.pathname),asset=resolve('dist/client','.'+relative),assetRoot=resolve('dist/client')+'/';if(asset.startsWith(assetRoot)&&existsSync(asset)&&extname(asset)){res.setHeader('Content-Type',mime[extname(asset)]||'application/octet-stream');res.end(readFileSync(asset));return}
 const headers=new Headers();for(const [name,value] of Object.entries(req.headers)){if(name.startsWith('oai-')||name==='host')continue;if(value)headers.set(name,Array.isArray(value)?value.join(','):value)}
 // Reviewer identity is available only through this loopback-only test harness.

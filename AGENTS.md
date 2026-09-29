@@ -27,13 +27,13 @@ Do not redesign from memory or from a generic component-library default.
 
 ## Product/access invariants
 
-- The current approved brief (27 September 2026) supersedes the former location-before-content model.
-- `/` is the public, property-led introduction; residences and enquiry pages are public.
+- The current approved brief (28 September 2026) supersedes earlier access models; see docs/PRIVATE_SCREENING_RELEASE_2026-09-28.md.
+- `/` is a public property preview with discreet enquiry and agent sign-in. Every residences route requires a server-verified agent session.
 - Agent operations require office-issued credentials. No public self-registration or automatic agent approval.
 - First-time agents complete saved screening; an authorized human reviewer records expertise and activation.
-- Request location only after an approved agent explicitly starts/resumes an assigned visit with informed consent.
+- Request location only for an explicit screening check-in or an approved agent’s explicitly started/resumed assigned visit, with informed consent and a manual alternative.
 - Stop browser acquisition on pause, arrival, completion, backgrounding and leaving the visit workspace. Resume requires an explicit action.
-- Never use GPS to gate the public portfolio or market telemetry as the product.
+- Never request location for the public splash or ordinary portfolio browsing, or market telemetry as the product.
 - Do not invent prices, availability, yield, scarcity, partnerships, testimonials or developer claims.
 
 ## Implementation discipline

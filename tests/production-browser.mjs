@@ -14,25 +14,25 @@ try{
   await page.getByLabel('Your name').waitFor({state:'visible'});
   console.log('PASS homepage enquiry opens');
   await page.keyboard.press('Escape');
-  await page.getByRole('link',{name:'Agent sign in',exact:true}).click();
+  await page.getByRole('link',{name:'Agent sign in',exact:true}).first().click();
   await page.getByLabel('Username',{exact:true}).waitFor({state:'visible'});
   await page.getByLabel('Password',{exact:true}).waitFor({state:'visible'});
   assert.match(new URL(page.url()).pathname,/\/agent\/sign-in/);
   await page.screenshot({path:'outputs/production/agent-sign-in.png',fullPage:true});
   console.log('PASS homepage Agent sign in opens credential form');
-  await page.getByRole('link',{name:'Explore residences',exact:true}).click();
-  await page.waitForURL('**/residences');
-  await page.getByRole('heading',{level:1}).waitFor();
-  console.log('PASS residences navigation');
-  await page.getByRole('link',{name:'Explore Tierra Viva'}).click();
-  await page.waitForURL('**/residences/tierra-viva');
-  await page.getByRole('link',{name:'Request a private presentation'}).click();
-  await page.getByLabel('Your name').waitFor({state:'visible'});
-  console.log('PASS project detail and qualified enquiry navigation');
+  for(const path of ['/residences','/residences/tierra-viva','/residences/tierra-viva/diamante']){
+    await page.goto(base+path);await page.getByLabel('Username',{exact:true}).waitFor({state:'visible'});
+    assert.match(new URL(page.url()).pathname,/\/agent\/sign-in/);
+  }
+  console.log('PASS all portfolio levels require sign-in');
+  await page.goto(base,{waitUntil:'networkidle'});
+  await page.getByRole('button',{name:/Zafiro/}).click();
+  await page.getByRole('img',{name:'Tierra Viva Zafiro architectural impression',exact:true}).waitFor();
+  await page.screenshot({path:'outputs/production/property-preview.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.goto(base,{waitUntil:'networkidle'});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  await page.getByRole('link',{name:'Agent sign in',exact:true}).click();
+  await page.getByRole('link',{name:'Agent sign in',exact:true}).first().click();
   await page.getByLabel('Username',{exact:true}).waitFor({state:'visible'});
   await page.screenshot({path:'outputs/production/mobile-sign-in.png',fullPage:true});
   console.log('PASS mobile agent sign-in navigation');

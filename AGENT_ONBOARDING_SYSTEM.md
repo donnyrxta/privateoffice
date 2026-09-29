@@ -1,3 +1,5 @@
+> Current owner instruction (28 September 2026): public access is limited to the property splash, enquiry/privacy, sign-in and capability-based invitation/client pages. Full portfolio routes require an issued agent session. Screening requests an explicit device-location check-in with a human-approved manual alternative; location is never part of expertise scoring. Visit sharing remains explicit and foreground-only. This supersedes earlier public-portfolio and visit-only location rules. See docs/PRIVATE_SCREENING_RELEASE_2026-09-28.md.
+
 > 27 September integration update: this document describes optional pre-credential invitation intake. The current owner brief makes residences public. Credential issuance leads to first-login professional interviews and explicit owner activation at `/office/reviews`; GPS is requested only for an explicitly started assigned visit. The earlier precise-location gate below is superseded. See docs/DESIGN_DECISIONS_2026-09-27.md.
 
 # Private Office — Agent Onboarding & Screening System

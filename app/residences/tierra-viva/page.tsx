@@ -1,3 +1,4 @@
+import {requirePortfolioAgent} from '@/lib/portfolio-access';
 import PortfolioHeader from '@/components/portfolio-header';
 import PortfolioMotion from '@/components/portfolio-motion';
 import {tierraViva} from '@/lib/portfolio';
@@ -6,6 +7,7 @@ export const metadata={title:'Tierra Viva | Private Office',description:'Private
 export const dynamic='force-dynamic';
 
 export default async function Page(){
+  await requirePortfolioAgent();
   return <div className="po-project">
     <PortfolioMotion/>
     <PortfolioHeader/>

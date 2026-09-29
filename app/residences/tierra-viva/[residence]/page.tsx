@@ -1,3 +1,4 @@
+import {requirePortfolioAgent} from '@/lib/portfolio-access';
 import {notFound} from 'next/navigation';
 import PortfolioHeader from '@/components/portfolio-header';
 import PortfolioMotion from '@/components/portfolio-motion';
@@ -7,6 +8,7 @@ import {getResidence,tierraViva} from '@/lib/portfolio';
 export const dynamic='force-dynamic';
 
 export default async function Page({params}:{params:Promise<{residence:string}>}){
+  await requirePortfolioAgent();
   const {residence:slug}=await params;
   const residence=getResidence(slug);
   if(!residence)notFound();
