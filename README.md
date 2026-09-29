@@ -128,7 +128,7 @@ First-time representatives are invited by the office rather than self-registerin
 
 ### Contracted-agent access invariant
 
-Credentials allow onboarding. Saved interview responses inform an office-owner review and explicit human activation; they never auto-approve an agent. Approved agents can accept and start assigned visits. Opening the homepage, portfolio, login or interviews never requests location. The legacy presence endpoint is disabled. Browser location requires explicit visit consent and stops on pause, arrival, completion, backgrounding or leaving the workspace. A return requires explicit start/resume. See `docs/COMPLETION_PLAN.md` for the audited baseline and acceptance criteria.
+Credentials allow onboarding. Saved interview responses inform an office-owner review and explicit human activation; they never auto-approve an agent. Invitation-based pre-credential screening may request best-effort continuous precise location only after the candidate accepts the proximity notice and explicitly starts sharing. Credentialed first-login interviews do not request location. Approved agents can accept and start assigned visits; visit location still requires its own explicit consent/start. The legacy presence endpoint is disabled. See `docs/COMPLETION_PLAN.md` and `docs/PRIVATE_SCREENING_RELEASE_2026-09-28.md` for the current contracts.
 
 
 Integration with concurrent main updates: preserve migration `0005_agent_onboarding_screening.sql` and apply it before `0006_agent_interviews.sql`. Optional invitation-link screening is pre-credential intake; the contracted agent then completes the first-login professional interview for visit activation. Public residences never require GPS.
