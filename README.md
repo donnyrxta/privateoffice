@@ -52,11 +52,14 @@ Apply the schema in order:
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0005_agent_onboarding_screening.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0006_agent_interviews.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0007_screening_location.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0008_screening_location_stream.sql
 
 ### Readiness
 
-GET /api/health returns 200 (ready or degraded) or 503 (not_ready). It checks the DB binding, a live D1 query, all required tables and enriched telemetry columns, schema version 0006_agent_interviews, the Cloudflare Access runtime config (standalone builds), office bootstrap state, and the watchdog/retention scheduler heartbeats. It returns no visit, client or agent data.
+GET /api/health returns 200 (ready or degraded) or 503 (not_ready). It checks the DB binding, a live D1 query, all required tables and enriched telemetry columns, schema version 0008_screening_location_stream, the Cloudflare Access runtime config (standalone builds), office bootstrap state, and the watchdog/retention scheduler heartbeats. It returns no visit, client or agent data.
 
 ### Go-live
 
@@ -114,6 +117,10 @@ The homepage and primary Diamante exterior use local 720/1280/2000 px WebP deriv
 ## Verification
 
 See docs/VERIFICATION.md, docs/OPERATIONS.md and docs/GO_LIVE.md.
+
+### Screening proximity location
+
+Invitation screening begins with explicit consent to a best-effort continuous device-location stream. The notice explains that Private Office wants to determine whether prospects or appointments are already close to the agent, and that independent agents may benefit from proximity matching. High-accuracy browser fixes are batched and persisted to D1 while the screening page/browser/device allow it. Background execution is not guaranteed. Screening location is not part of expertise scoring and is retained for up to 30 days.
 
 ### First-time agent onboarding
 
