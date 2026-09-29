@@ -39,7 +39,7 @@ export default function ScreeningCheckIn({
       }
       setError('');
     }catch(e){
-      setError('Some coordinates have not reached Private Office. Keep this page open and retry pending coordinates. '+(e as Error).message);
+      setError('Some updates have not reached Private Office yet. Keep this page open and try sending them again. '+(e as Error).message);
     }finally{
       flushing.current=false;
     }
@@ -84,7 +84,7 @@ export default function ScreeningCheckIn({
       };
       queue.current.push(observation);
       setPending(queue.current.length);
-      if(queue.current.length>=100){stop(true);setError('Sharing paused: 100 coordinates are waiting to upload. Retry pending coordinates before resuming. Nothing has been discarded.');void flush();return}
+      if(queue.current.length>=100){stop(true);setError('Sharing paused: 100 updates are still waiting to send. Try sending the unsent updates before resuming. Nothing has been lost.');void flush();return}
       setLast({accuracy:c.accuracy,receivedAt:Date.now()});
       setBusy(false);
       if(sequence.current===1||queue.current.length>=10)void flush();
@@ -92,9 +92,9 @@ export default function ScreeningCheckIn({
       setBusy(false);
       if(event.code===1){
         stop(true);
-        setError('Location permission was denied. Allow precise location in your browser’s site settings and retry, or request a manual interview.');
-      }else if(event.code===2)setError('Your device cannot determine its location yet. Keep device location enabled and move near a window or outdoors; we will keep trying while the browser permits.');
-      else setError('The device location request timed out. We will keep trying while this page remains open; move near a window or outdoors for a better fix.');
+        setError('Location sharing is turned off for this site. You can allow it in your browser settings and try again, or request a manual interview.');
+      }else if(event.code===2)setError('We have not found your location yet. Keep location enabled and move near a window or outdoors; we will keep trying while the page is open.');
+      else setError('Finding your location is taking longer than expected. Keep this page open and move near a window or outdoors if you can.');
     },{enableHighAccuracy:true,maximumAge:0,timeout:20000});
     timer.current=setInterval(()=>void flush(),10000);
   }
@@ -107,8 +107,8 @@ export default function ScreeningCheckIn({
   }
 
   if(started)return <section className={styles.locationMonitor} aria-live="polite">
-    <div><strong>Precise location sharing is active</strong><span>{last?('Latest device fix ±'+Math.round(last.accuracy)+' m'):'Waiting for the first device fix'}{' · '+pending+' awaiting upload'}</span></div>
-    <p>Every device fix is queued for upload. Sharing stops when you hide or leave this page; resuming requires your action. Keep this page open until pending coordinates are uploaded.</p>
+    <div><strong>Working area sharing is on</strong><span>{last?('Latest update ±'+Math.round(last.accuracy)+' m'):'Waiting for the first device fix'}{' · '+pending+' awaiting upload'}</span></div>
+    <p>Location updates are sent while this page stays open. Sharing pauses if you hide or leave the page, and you choose when to resume.</p>
     <button type="button" className={styles.secondary} onClick={()=>stop(true)}>Stop sharing</button>
     {error&&<p role="status" className={styles.error}>{error}</p>}
   </section>;
@@ -116,15 +116,15 @@ export default function ScreeningCheckIn({
   if(active&&!started&&pending===0)return null;
 
   return <section className={styles.checkIn} aria-labelledby="check-in-heading">
-    <p className={styles.eyebrow}>BEFORE WE BEGIN · PROXIMITY CHECK</p>
+    <p className={styles.eyebrow}>BEFORE WE BEGIN · WORKING AREA</p>
     <h2 id="check-in-heading">Share where you are working from.</h2>
-    <p><strong>We want to determine whether we already have prospects close to you.</strong> For independent agents, sharing precise device location can be advantageous because it can help Private Office identify nearby prospects, appointments or opportunities that may fit the area you can serve.</p>
-    <p>With your consent, we will request the most precise location your device and browser can provide and continue collecting device-reported coordinates while this screening page and your device allow it. Sharing stops when this page is hidden or closed. The browser controls fix frequency; updates are best-effort.</p>
-    <p>Only authorized Private Office reviewers can access this screening-location evidence. It is retained for up to 30 days, is not used in your expertise score, and does not guarantee that a nearby prospect will be assigned to you.</p>
-    <label className={styles.declaration}><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I agree to share my precise device location continuously during this screening for proximity matching and screening evidence. <a href="/privacy">Privacy notice</a></span></label>
-    <button type="button" className={styles.primary} disabled={!consent||busy||pending>0} onClick={start}>{busy?'Acquiring precise location…':'Start precise location sharing'}</button>
-    {pending>0&&<p role="status">{pending} coordinates await upload. Keep this page open; closing it can lose unsent coordinates. <button type="button" className={styles.secondary} onClick={()=>void flush()}>Retry pending coordinates</button></p>}
+    <p><strong>We'd like to see if there are already prospects near you.</strong> For independent agents, sharing your working area can be useful because it helps Private Office match you with nearby prospects, appointments or opportunities that fit the area you serve.</p>
+    <p>With your consent, we'll use your location while this page stays open to help suggest nearby matches. Sharing pauses if you hide or close the page, switch apps, or lock your screen.</p>
+    <p>Only our small review team can see this, solely to support nearby matching. It is deleted after 30 days, never affects how we view your experience, and does not guarantee a nearby prospect will be assigned to you.</p>
+    <label className={styles.declaration}><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I agree to share my location during this screening to help match me with nearby opportunities. <a href="/privacy">Privacy notice</a></span></label>
+    <button type="button" className={styles.primary} disabled={!consent||busy||pending>0} onClick={start}>{busy?'Finding your area…':'Share my working area'}</button>
+    {pending>0&&<p role="status">{pending} updates are still sending. Keep this page open until they finish. <button type="button" className={styles.secondary} onClick={()=>void flush()}>Retry unsent updates</button></p>}
     {error&&<p role="alert" className={styles.error}>{error}</p>}
-    <details className={styles.manual}><summary>Unable or prefer not to share location?</summary><p>Request a manual interview. Your saved answers remain available. The office must approve this alternative before online screening can continue.</p><label>Reason for manual interview<textarea value={reason} minLength={10} maxLength={600} onChange={e=>setReason(e.target.value)}/></label><button type="button" className={styles.secondary} disabled={busy||reason.trim().length<10} onClick={manual}>Request manual review</button>{requested&&<p role="status">Request saved. Contact the office representative who invited you, then reopen this invitation after approval.</p>}</details>
+    <details className={styles.manual}><summary>Unable or prefer not to share location?</summary><p>Request a manual interview instead. Your saved answers are kept, and we'll confirm with you before you continue online.</p><label>Reason for manual interview<textarea value={reason} minLength={10} maxLength={600} onChange={e=>setReason(e.target.value)}/></label><button type="button" className={styles.secondary} disabled={busy||reason.trim().length<10} onClick={manual}>Request manual review</button>{requested&&<p role="status">Request saved. Contact the office representative who invited you, then reopen this invitation after approval.</p>}</details>
   </section>;
 }

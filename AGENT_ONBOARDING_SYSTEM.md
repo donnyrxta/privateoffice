@@ -171,3 +171,17 @@ Use the Private Office typography, spacing, restrained palette and interaction r
 3. Do not provision credentials before human approval.
 4. Do not bypass the existing agent location gate.
 5. Do not use screening classification as an automatic rejection condition.
+
+## Agent-facing language contract
+
+Agent-facing copy should describe the same mechanics without sounding like surveillance infrastructure.
+
+Prefer:
+- **working area**, **location sharing**, **location update**, **nearby opportunity**, **review team**, **strengths map**, **saved update**, **deleted after 30 days**, **ready for review**;
+- plain explanations of why location helps the agent or client;
+- clear voluntary actions such as **Share my working area**, **Stop sharing**, and **Request a manual interview**.
+
+Avoid in agent-facing UI unless there is no accurate plain-language alternative:
+- **tracking**, **telemetry**, **coordinate stream**, **device-reported coordinates**, **screening evidence**, **audit trail**, **retained**, **authorized reviewers**, **tracking epoch**, **final sequence**, **expertise score**, and **locked for review**.
+
+Technical vocabulary may remain in database names, protocol fields, internal logs, engineering documentation and diagnostic tooling. Do not weaken consent, retention, access-control or accuracy disclosures merely to make them sound friendlier; translate them into ordinary language instead.

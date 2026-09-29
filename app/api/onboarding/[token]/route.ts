@@ -40,19 +40,19 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
   const locationBatch=b.action==='location_batch';
   await rate((locationBatch?'onboarding-location:':'onboarding:')+invite.id+':'+ip,locationBatch?900:120,60*60*1000);
   let application=await applicationFor(invite.id);
-  if(application&&application.status!=='draft')throw new HttpError(409,'This application has already been submitted for review.');
+  if(application&&application.status!=='draft')throw new HttpError(409,'Your introduction has already been submitted for review.');
 
   if(b.action==='location_batch'){
-    if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Confirm the continuous screening location notice before sharing.');
+    if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Please confirm the location-sharing notice before you begin.');
     const sessionId=typeof b.session_id==='string'?b.session_id:'',observations=Array.isArray(b.observations)?b.observations:[];
-    if(!/^[a-zA-Z0-9._:-]{8,100}$/.test(sessionId)||observations.length<1||observations.length>25)throw new HttpError(400,'Send a valid screening location session with 1–25 observations.');
+    if(!/^[a-zA-Z0-9._:-]{8,100}$/.test(sessionId)||observations.length<1||observations.length>25)throw new HttpError(400,'Please restart location sharing and try again.');
     const now=Date.now(),processed:string[]=[],statements=[];
     for(const raw of observations){
-      if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new HttpError(400,'Invalid observation.');
+      if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new HttpError(400,'One location update could not be read.');
       const o=raw as Record<string,unknown>;
-      if(!['sequence_number','lat','lng','accuracy','recorded_at'].every(k=>typeof o[k]==='number'&&Number.isFinite(o[k])))throw new HttpError(400,'Observation values must be numeric.');
+      if(!['sequence_number','lat','lng','accuracy','recorded_at'].every(k=>typeof o[k]==='number'&&Number.isFinite(o[k])))throw new HttpError(400,'One location update contained information the browser could not use.');
       const id=typeof o.id==='string'?o.id:'',sequence=Number(o.sequence_number),lat=Number(o.lat),lng=Number(o.lng),accuracy=Number(o.accuracy),recordedAt=Number(o.recorded_at);
-      if(!/^[a-zA-Z0-9._:-]{8,100}$/.test(id)||!Number.isInteger(sequence)||sequence<0||sequence>10_000_000||![lat,lng,accuracy,recordedAt].every(Number.isFinite)||Math.abs(lat)>90||Math.abs(lng)>180||accuracy<=0||accuracy>10000||recordedAt<now-15*60*1000||recordedAt>now+10000)throw new HttpError(400,'A screening location observation is invalid or too old.');
+      if(!/^[a-zA-Z0-9._:-]{8,100}$/.test(id)||!Number.isInteger(sequence)||sequence<0||sequence>10_000_000||![lat,lng,accuracy,recordedAt].every(Number.isFinite)||Math.abs(lat)>90||Math.abs(lng)>180||accuracy<=0||accuracy>10000||recordedAt<now-15*60*1000||recordedAt>now+10000)throw new HttpError(400,'One location update is too old or could not be accepted. Keep the page open and try again.');
       const nullable=(value:unknown,min:number,max:number)=>value===null||value===undefined?null:(typeof value==='number'&&Number.isFinite(value)&&value>=min&&value<=max?value:null);
       const altitude=nullable(o.altitude,-12000,100000),altitudeAccuracy=nullable(o.altitude_accuracy,0,100000),heading=nullable(o.heading,0,360),speed=nullable(o.speed,0,1000);
       statements.push(db().prepare(`INSERT OR IGNORE INTO screening_location_observations
@@ -64,14 +64,14 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
     // Acknowledgement means the exact observation was persisted, never just ignored.
     for(const o of observations){
       const saved=await db().prepare('SELECT * FROM screening_location_observations WHERE id=?').bind(o.id).first<Record<string,unknown>>();
-      if(!saved||saved.invite_id!==invite.id||saved.session_id!==sessionId||!['sequence_number','lat','lng','accuracy','recorded_at'].every(k=>saved[k]===o[k]))throw new HttpError(409,'A location identifier conflicts with a different recorded observation.');
+      if(!saved||saved.invite_id!==invite.id||saved.session_id!==sessionId||!['sequence_number','lat','lng','accuracy','recorded_at'].every(k=>saved[k]===o[k]))throw new HttpError(409,'This location update conflicts with one already saved. Reload the page and try again.');
     }
     return json({ok:true,processed_ids:processed,location:await screeningLocation(invite.id)});
   }
   if(b.action==='location'){
-    if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Confirm the screening location notice before sharing.');
+    if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Please confirm the location-sharing notice before you begin.');
     const {lat,lng,accuracy,recorded_at}=b,now=Date.now();
-    if(![lat,lng,accuracy,recorded_at].every(v=>typeof v==='number'&&Number.isFinite(v))||Math.abs(lat)>90||Math.abs(lng)>180||accuracy<=0||accuracy>10000||recorded_at<now-60000||recorded_at>now+10000)throw new HttpError(400,'A current, valid device location is required.');
+    if(![lat,lng,accuracy,recorded_at].every(v=>typeof v==='number'&&Number.isFinite(v))||Math.abs(lat)>90||Math.abs(lng)>180||accuracy<=0||accuracy>10000||recorded_at<now-60000||recorded_at>now+10000)throw new HttpError(400,'We need a fresh location update to continue.');
     await db().prepare("INSERT INTO screening_location_checks (id,invite_id,kind,lat,lng,accuracy,recorded_at,received_at,consent_version) VALUES (?,?,'location',?,?,?,?,?,?)").bind(crypto.randomUUID(),invite.id,lat,lng,accuracy,recorded_at,now,SCREENING_LOCATION_VERSION).run();
     return json({ok:true,location:await screeningLocation(invite.id)});
   }
@@ -111,12 +111,12 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
   }
 
   if(b.action==='save_answers'){
-    if(!application)throw new HttpError(409,'Complete your professional profile before the screening.');
-    const submitted=b.answers;if(!submitted||typeof submitted!=='object'||Array.isArray(submitted))throw new HttpError(400,'Screening answers are required.');
+    if(!application)throw new HttpError(409,'Complete your professional profile before continuing.');
+    const submitted=b.answers;if(!submitted||typeof submitted!=='object'||Array.isArray(submitted))throw new HttpError(400,'Please answer the interview question before continuing.');
     const current=parse<Record<string,string>>(application.answers_json,{});
     for(const [questionId,answer] of Object.entries(submitted)){
-      const q=SCREENING_QUESTIONS.find(x=>x.id===questionId);if(!q)throw new HttpError(400,'An unknown screening question was supplied.');
-      if(!q.choices.some(c=>c.id===String(answer)))throw new HttpError(400,'Choose one of the available responses for every screening question.');
+      const q=SCREENING_QUESTIONS.find(x=>x.id===questionId);if(!q)throw new HttpError(400,'This interview question is no longer available. Reload the page and try again.');
+      if(!q.choices.some(c=>c.id===String(answer)))throw new HttpError(400,'Choose one of the available responses before continuing.');
       current[questionId]=String(answer);
     }
     await db().prepare('UPDATE agent_screening_sessions SET answers_json=?,updated_at=? WHERE application_id=?').bind(JSON.stringify(current),Date.now(),application.id).run();
@@ -127,7 +127,7 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
   if(b.action==='submit'){
     if(!application)throw new HttpError(409,'Complete your professional profile before submitting.');
     const answers=parse<Record<string,string>>(application.answers_json,{});
-    if(!screeningComplete(answers))throw new HttpError(400,'Complete every screening question before submitting.');
+    if(!screeningComplete(answers))throw new HttpError(400,'Complete every interview question before submitting.');
     if(b.declaration!==true)throw new HttpError(400,'Confirm that the information supplied is accurate before submitting.');
     const now=Date.now(),classification=classifyScreening(answers,now);
     await db().batch([
