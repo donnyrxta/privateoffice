@@ -7,10 +7,10 @@ export type ScreeningLocation={status:'required'|'acquired'|'manual_pending'|'ma
 export async function screeningLocation(inviteId:string):Promise<ScreeningLocation>{
   const [checks,latestStream]=await Promise.all([
     db().prepare("SELECT kind,accuracy,received_at FROM screening_location_checks WHERE invite_id=? ORDER BY received_at DESC LIMIT 100").bind(inviteId).all<{kind:string;accuracy:number|null;received_at:number}>(),
-    db().prepare("SELECT accuracy,received_at FROM screening_location_observations WHERE invite_id=? ORDER BY received_at DESC LIMIT 1").bind(inviteId).first<{accuracy:number;received_at:number}>()
+    db().prepare("SELECT accuracy,received_at FROM screening_location_observations WHERE invite_id=? AND accuracy<=100 ORDER BY received_at DESC LIMIT 1").bind(inviteId).first<{accuracy:number;received_at:number}>()
   ]);
   if(checks.results.some(r=>r.kind==='manual_approved'))return {status:'manual_approved',accuracy:null,received_at:null,expires_at:null};
-  const legacy=checks.results.find(r=>r.kind==='location');
+  const legacy=checks.results.find(r=>r.kind==='location'&&Number(r.accuracy)<=100);
   const fix=latestStream&&(!legacy||latestStream.received_at>=legacy.received_at)?latestStream:legacy;
   if(fix&&Number(fix.accuracy)<=100&&fix.received_at>Date.now()-SCREENING_LOCATION_FRESH_MS)return {status:'acquired',accuracy:Number(fix.accuracy),received_at:Number(fix.received_at),expires_at:Number(fix.received_at)+SCREENING_LOCATION_FRESH_MS};
   return {status:checks.results.some(r=>r.kind==='manual_requested')?'manual_pending':'required',accuracy:null,received_at:null,expires_at:null};
