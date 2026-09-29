@@ -21,6 +21,7 @@ export async function getOps(d1:D1Database,key:string){return d1.prepare('SELECT
 export async function runRetention(d1:D1Database,now=Date.now()){
   const p=RETENTION_POLICY;
   const results=await d1.batch([
+    d1.prepare('DELETE FROM screening_location_observations WHERE received_at < ?').bind(now-p.telemetryMs),
     d1.prepare('DELETE FROM screening_location_checks WHERE received_at < ?').bind(now-p.telemetryMs),
     d1.prepare('DELETE FROM points WHERE received_at < ?').bind(now-p.telemetryMs),
     d1.prepare('DELETE FROM observation_rejections WHERE received_at < ?').bind(now-p.telemetryMs),
@@ -33,7 +34,7 @@ export async function runRetention(d1:D1Database,now=Date.now()){
     d1.prepare('DELETE FROM agent_web_sessions WHERE expires_at < ? OR (revoked_at IS NOT NULL AND revoked_at < ?)').bind(now,now-p.agentWebSessionsMs),
     d1.prepare('DELETE FROM rate_limits WHERE expires_at < ?').bind(now),
   ]);
-  const names=['screening_location_checks','points','observation_rejections','security_events','events','enquiries','visits','agent_sessions','agent_page_activity','agent_web_sessions','rate_limits'];
+  const names=['screening_location_observations','screening_location_checks','points','observation_rejections','security_events','events','enquiries','visits','agent_sessions','agent_page_activity','agent_web_sessions','rate_limits'];
   const deleted=Object.fromEntries(names.map((n,i)=>[n,results[i]?.meta?.changes??0]));
   await setOps(d1,'retention_last_run',{deleted},now);
   opsLog('info','retention_completed',{deleted});
