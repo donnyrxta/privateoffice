@@ -6,3 +6,5 @@
 .locationMonitor{margin:0 clamp(22px,5vw,76px) 34px;padding:18px 20px;border:1px solid #b7c1bf;background:#f7f6f1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:center}
 .locationMonitor>div{display:grid;gap:5px}.locationMonitor strong{font:600 11px/1.25 Arial,sans-serif;letter-spacing:.4px;color:#15242a}.locationMonitor span{font-size:10px;color:#68777c}.locationMonitor p{grid-column:1/-1;margin:0;max-width:900px;font-size:11px;line-height:1.65;color:#647277}.locationMonitor .secondary{grid-row:1;grid-column:2;min-height:38px;padding:0 13px}.locationMonitor .error{grid-column:1/-1;margin:0}
 @media(max-width:720px){.locationMonitor{grid-template-columns:1fr}.locationMonitor .secondary{grid-row:auto;grid-column:auto;justify-self:start}}
+
+.locationMonitor strong,.locationMonitor span,.locationMonitor p{font-size:16px}.locationMonitor .secondary{min-height:44px}

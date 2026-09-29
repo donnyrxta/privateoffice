@@ -12,11 +12,12 @@ type Observation={
 const CONSENT_VERSION='2026-09-29.screening.v2';
 
 export default function ScreeningCheckIn({
-  token,onReady,onStopped,active
-}:{token:string;onReady:(state:LocationState)=>void;onStopped:()=>void;active:boolean}){
+  token,onReady,onStopped,onPending,active
+}:{token:string;onReady:(state:LocationState)=>void;onStopped:()=>void;onPending:(count:number)=>void;active:boolean}){
   const [consent,setConsent]=useState(false),[started,setStarted]=useState(false),[busy,setBusy]=useState(false);
   const [error,setError]=useState(''),[reason,setReason]=useState(''),[requested,setRequested]=useState(false);
-  const [last,setLast]=useState<{accuracy:number;receivedAt:number}|null>(null),[backgrounded,setBackgrounded]=useState(false);
+  const [last,setLast]=useState<{accuracy:number;receivedAt:number}|null>(null),[pending,setPending]=useState(0);
+  useEffect(()=>{onPending(pending)},[pending,onPending]);
   const watchId=useRef<number|null>(null),sessionId=useRef(''),sequence=useRef(0),queue=useRef<Observation[]>([]),flushing=useRef(false);
   const timer=useRef<ReturnType<typeof setInterval>|null>(null),onReadyRef=useRef(onReady),onStoppedRef=useRef(onStopped);
   useEffect(()=>{onReadyRef.current=onReady},[onReady]);
@@ -31,14 +32,14 @@ export default function ScreeningCheckIn({
         action:'location_batch',consent:true,consent_version:CONSENT_VERSION,session_id:sessionId.current,observations:batch
       }) as {processed_ids:string[];location:LocationState};
       const done=new Set(result.processed_ids||[]);
-      queue.current=queue.current.filter(o=>!done.has(o.id));
+      queue.current=queue.current.filter(o=>!done.has(o.id));setPending(queue.current.length);
       if(result.location.received_at&&result.location.accuracy!=null)setLast({accuracy:result.location.accuracy,receivedAt:result.location.received_at});
-      if(result.location.status==='acquired'||result.location.status==='manual_approved'){
+      if(watchId.current!==null&&(result.location.status==='acquired'||result.location.status==='manual_approved')){
         onReadyRef.current(result.location);
       }
       setError('');
     }catch(e){
-      setError('Location is still being collected on this device, but the latest observations have not reached Private Office yet. '+(e as Error).message);
+      setError('Some coordinates have not reached Private Office. Keep this page open and retry pending coordinates. '+(e as Error).message);
     }finally{
       flushing.current=false;
     }
@@ -53,8 +54,10 @@ export default function ScreeningCheckIn({
 
   useEffect(()=>{
     const online=()=>void flush();
-    const visibility=()=>setBackgrounded(document.hidden);
+    const leaving=(e:BeforeUnloadEvent)=>{if(queue.current.length){e.preventDefault();e.returnValue=''}};
+    const visibility=()=>{if(document.hidden)stop(true)};
     const pagehide=()=>{
+      stop(false);
       if(queue.current.length===0||!sessionId.current)return;
       const batch=queue.current.slice(0,25);
       try{
@@ -63,23 +66,25 @@ export default function ScreeningCheckIn({
         }),keepalive:true,credentials:'same-origin'});
       }catch{}
     };
-    window.addEventListener('online',online);window.addEventListener('pagehide',pagehide);document.addEventListener('visibilitychange',visibility);
-    return()=>{window.removeEventListener('online',online);window.removeEventListener('pagehide',pagehide);document.removeEventListener('visibilitychange',visibility);stop(false)};
+    window.addEventListener('beforeunload',leaving);window.addEventListener('online',online);window.addEventListener('pagehide',pagehide);document.addEventListener('visibilitychange',visibility);
+    return()=>{window.removeEventListener('beforeunload',leaving);window.removeEventListener('online',online);window.removeEventListener('pagehide',pagehide);document.removeEventListener('visibilitychange',visibility);stop(false)};
   },[flush,stop,token]);
 
   function start(){
-    if(!consent||started)return;
+    if(!consent||started||queue.current.length)return;
     setError('');
     if(!window.isSecureContext){setError('Open the HTTPS version of this invitation to share precise location.');return}
     if(!navigator.geolocation){setError('This browser does not support location. Use another browser or request a manual interview below.');return}
     setBusy(true);setStarted(true);sessionId.current='screen-'+crypto.randomUUID();sequence.current=0;queue.current=[];
     watchId.current=navigator.geolocation.watchPosition(position=>{
+      if(document.hidden||watchId.current===null)return;
       const c=position.coords,observation:Observation={
         id:crypto.randomUUID(),sequence_number:sequence.current++,lat:c.latitude,lng:c.longitude,accuracy:c.accuracy,
         altitude:c.altitude,altitude_accuracy:c.altitudeAccuracy,heading:c.heading,speed:c.speed,recorded_at:position.timestamp
       };
       queue.current.push(observation);
-      if(queue.current.length>100)queue.current=queue.current.slice(-100);
+      setPending(queue.current.length);
+      if(queue.current.length>=100){stop(true);setError('Sharing paused: 100 coordinates are waiting to upload. Retry pending coordinates before resuming. Nothing has been discarded.');void flush();return}
       setLast({accuracy:c.accuracy,receivedAt:Date.now()});
       setBusy(false);
       if(sequence.current===1||queue.current.length>=10)void flush();
@@ -102,22 +107,23 @@ export default function ScreeningCheckIn({
   }
 
   if(started)return <section className={styles.locationMonitor} aria-live="polite">
-    <div><strong>Precise location sharing is active</strong><span>{last?('Latest device fix ±'+Math.round(last.accuracy)+' m'):'Waiting for the first device fix'}{backgrounded?' · browser is backgrounded':''}</span></div>
-    <p>Keep this screening page open for the strongest continuity. We keep requesting and saving device-reported coordinates while your browser and device allow it; backgrounding, screen lock or operating-system restrictions can interrupt updates.</p>
+    <div><strong>Precise location sharing is active</strong><span>{last?('Latest device fix ±'+Math.round(last.accuracy)+' m'):'Waiting for the first device fix'}{' · '+pending+' awaiting upload'}</span></div>
+    <p>Every device fix is queued for upload. Sharing stops when you hide or leave this page; resuming requires your action. Keep this page open until pending coordinates are uploaded.</p>
     <button type="button" className={styles.secondary} onClick={()=>stop(true)}>Stop sharing</button>
     {error&&<p role="status" className={styles.error}>{error}</p>}
   </section>;
 
-  if(active&&!started)return null;
+  if(active&&!started&&pending===0)return null;
 
   return <section className={styles.checkIn} aria-labelledby="check-in-heading">
     <p className={styles.eyebrow}>BEFORE WE BEGIN · PROXIMITY CHECK</p>
     <h2 id="check-in-heading">Share where you are working from.</h2>
     <p><strong>We want to determine whether we already have prospects close to you.</strong> For independent agents, sharing precise device location can be advantageous because it can help Private Office identify nearby prospects, appointments or opportunities that may fit the area you can serve.</p>
-    <p>With your consent, we will request the most precise location your device and browser can provide and continue collecting device-reported coordinates while this screening page and your device allow it. Browsers may throttle or pause location when backgrounded or when the screen locks, so this is best-effort rather than guaranteed background tracking.</p>
+    <p>With your consent, we will request the most precise location your device and browser can provide and continue collecting device-reported coordinates while this screening page and your device allow it. Sharing stops when this page is hidden or closed. The browser controls fix frequency; updates are best-effort.</p>
     <p>Only authorized Private Office reviewers can access this screening-location evidence. It is retained for up to 30 days, is not used in your expertise score, and does not guarantee that a nearby prospect will be assigned to you.</p>
     <label className={styles.declaration}><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I agree to share my precise device location continuously during this screening for proximity matching and screening evidence. <a href="/privacy">Privacy notice</a></span></label>
-    <button type="button" className={styles.primary} disabled={!consent||busy} onClick={start}>{busy?'Acquiring precise location…':'Start precise location sharing'}</button>
+    <button type="button" className={styles.primary} disabled={!consent||busy||pending>0} onClick={start}>{busy?'Acquiring precise location…':'Start precise location sharing'}</button>
+    {pending>0&&<p role="status">{pending} coordinates await upload. Keep this page open; closing it can lose unsent coordinates. <button type="button" className={styles.secondary} onClick={()=>void flush()}>Retry pending coordinates</button></p>}
     {error&&<p role="alert" className={styles.error}>{error}</p>}
     <details className={styles.manual}><summary>Unable or prefer not to share location?</summary><p>Request a manual interview. Your saved answers remain available. The office must approve this alternative before online screening can continue.</p><label>Reason for manual interview<textarea value={reason} minLength={10} maxLength={600} onChange={e=>setReason(e.target.value)}/></label><button type="button" className={styles.secondary} disabled={busy||reason.trim().length<10} onClick={manual}>Request manual review</button>{requested&&<p role="status">Request saved. Contact the office representative who invited you, then reopen this invitation after approval.</p>}</details>
   </section>;

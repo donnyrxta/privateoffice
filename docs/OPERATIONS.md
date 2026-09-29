@@ -84,3 +84,6 @@ The former location-before-content gate has been retired. `/api/agent/presence` 
 
 
 Integration with concurrent main updates: preserve migration `0005_agent_onboarding_screening.sql` and apply it before `0006_agent_interviews.sql`. Optional invitation-link screening is pre-credential intake; the contracted agent then completes the first-login professional interview for visit activation. Public residences never require GPS.
+
+### Complete coordinate streams (29 September 2026)
+Open **Coordinate stream & complete history** under an invitation's screening check-ins or a visit review. It refreshes every five seconds and exports all retained coordinates to CSV. See [coordinate stream contract](COORDINATE_STREAM_2026-09-29.md) for pagination, timestamps, retention and offline limits.

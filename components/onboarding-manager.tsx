@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useState} from 'react';
+import CoordinateHistory from './coordinate-history';
 import {ArrowRight,Check,Copy,RefreshCw,ShieldCheck,UserPlus,X} from 'lucide-react';
 import {api,post,date} from '@/lib/client';
 import {SCREENING_QUESTIONS} from '@/lib/screening';
@@ -32,7 +33,7 @@ export default function OnboardingManager(){
     {error&&<p className="error section-gap" role="alert">{error}</p>}
 
     <div className={styles.pipelineHead}><h3>Screening location evidence</h3><span>Office only · continuous while permitted · 30-day retention</span></div>
-    <div className={styles.slimList}>{data.invites.map(invite=>{const checks=(data.location_checks||[]).filter(c=>c.invite_id===invite.id),latest=checks.find(c=>c.kind==='location'),request=checks.find(c=>c.kind==='manual_requested'),approved=checks.some(c=>c.kind==='manual_approved');if(!checks.length)return null;return <div key={invite.id}><strong>{invite.intended_email||'Invitation '+invite.id.slice(0,8)}</strong>{latest&&<p>Device-reported: {latest.lat?.toFixed(5)}, {latest.lng?.toFixed(5)} · ±{Math.round(latest.accuracy||0)} m · {date(latest.received_at)}. Not independent proof of identity or presence.</p>}{request&&<p>Manual request: {request.note}</p>}{approved?<p>Manual interview approved.</p>:request&&<button type="button" className={styles.approve} disabled={busy} onClick={()=>allowManual(invite.id)}>Allow manual screening</button>}</div>})}</div>
+    <div className={styles.slimList}>{data.invites.map(invite=>{const checks=(data.location_checks||[]).filter(c=>c.invite_id===invite.id),latest=checks.find(c=>c.kind==='location'),request=checks.find(c=>c.kind==='manual_requested'),approved=checks.some(c=>c.kind==='manual_approved');return <div key={invite.id}><strong>{invite.intended_email||'Invitation '+invite.id.slice(0,8)}</strong>{latest&&<p>Device-reported: {latest.lat?.toFixed(5)}, {latest.lng?.toFixed(5)} · ±{Math.round(latest.accuracy||0)} m · {date(latest.received_at)}. Not independent proof of identity or presence.</p>}<CoordinateHistory kind="screening" id={invite.id}/>{request&&<p>Manual request: {request.note}</p>}{approved?<p>Manual interview approved.</p>:request&&<button type="button" className={styles.approve} disabled={busy} onClick={()=>allowManual(invite.id)}>Allow manual screening</button>}</div>})}</div>
 
     <div className={styles.pipelineHead}><h3>Awaiting office review</h3><span>{submitted.length}</span></div>
     {submitted.length?<div className={styles.applications}>{submitted.map(app=><ApplicationRow key={app.id} app={app} actions={<><button className={styles.approve} onClick={()=>approve(app)} disabled={busy}><Check size={14}/>Approve & issue login</button><button className={styles.decline} onClick={()=>decline(app)} disabled={busy}><X size={14}/>Decline</button></>}/>)}</div>:<div className={styles.empty}>No submitted screening records are waiting for review.</div>}

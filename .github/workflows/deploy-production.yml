@@ -54,6 +54,18 @@ jobs:
       - name: API contract suite
         run: npm run test:api
 
+      - name: Install browser verification
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+
+      - name: Verify synthetic screening stream and visit journeys
+        run: |
+          node tests/browser-server.mjs > /tmp/browser-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          PLAYWRIGHT_MODULE=playwright SCREENSHOT_DIR=outputs/synthetic node tests/browser.test.mjs
+
       - name: Apply additive agent screening migrations
         run: |
           npx wrangler d1 execute private-office-d1 --remote --config dist/server/wrangler.json --file drizzle/0005_agent_onboarding_screening.sql
@@ -99,12 +111,6 @@ jobs:
       - name: Anonymous production contract
         run: npm run verify:production -- "$PRODUCTION_BASE_URL"
 
-      - name: Install production browser verification
-        if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
-        run: |
-          npm install --no-save --package-lock=false playwright@1.58.2
-          npx playwright install --with-deps chromium
-
       - name: Verify live buttons and sign-in navigation
         if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
         run: node tests/production-browser.mjs
@@ -113,5 +119,7 @@ jobs:
         if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
         with:
           name: production-browser-evidence
-          path: outputs/production
+          path: |
+            outputs/production
+            outputs/synthetic
           retention-days: 7

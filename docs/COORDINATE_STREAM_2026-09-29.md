@@ -1,0 +1,24 @@
+# Complete coordinate history — 29 September 2026
+
+## Decision and impact
+Owner requested the stream of all recorded coordinates because agents may move. Main already contained consented screening `watchPosition` batching (98ed08a); preserve it and the existing visit telemetry engine. Dependency trace: screening watcher → invitation batch API → D1 observations → owner-only coordinate feed → reviewer history/CSV. Visit observations use the same feed under existing visit ownership. Structural graph tools were unavailable; references/routes/schema/tests were traced directly.
+
+## Reviewer workflow
+Office → Agent access → Screening check-ins → candidate → **Coordinate stream & complete history**. Visit review has the same control. Opening it starts five-second retrieval; closing it stops retrieval. Device timestamp, receipt timestamp, latitude/longitude, accuracy, session and sequence are visible. The table keeps the latest 500 loaded rows for responsiveness; the visible count makes this explicit. **Download all coordinates (CSV)** traverses every page and includes all retained observations, including earlier single screening check-ins. Timestamps in the table are UTC and CSV timestamps are Unix milliseconds. No road route or guaranteed movement is inferred from samples.
+
+## API
+`GET /api/office/coordinates?kind=screening|visit&id=ID&after=0&legacy_after=0&limit=500`
+Requires authenticated office ownership; visit IDs also require matching visit owner. No candidate tokens or public client access. JSON is no-store through the common response helper. Each response contains `rows`, `next` and `has_more`. Pass both next cursor values to drain subsequent pages, then poll the same cursor for newly persisted rows. Screening returns both continuous observations and legacy coordinate check-ins. Insertion cursors handle equal timestamps and late uploads without skipping them. Start a new cursor when reopening history; cursors are not durable across database restoration or total retention deletion. Records outside 30-day retention are excluded even before scheduled deletion runs.
+
+## Capture and delivery integrity
+Every screening fix exposed by the browser is queued; no sampling filter is added. Previously, the queue silently sliced away older fixes at 100. It now pauses acquisition at 100 pending fixes, retains that queue, displays the pending count/error and provides explicit retry before resuming. Submission waits for pending uploads. A browser departure warning helps avoid abandoning unsent records. Queue is memory-resident: closing/crashing/reloading can still lose unsent observations; it is not represented as durable offline recording. Batch upload accepts device timestamps within 15 minutes; longer outages require operational follow-up rather than fabricating new timestamps. Existing visit IndexedDB durability is unchanged.
+
+Screening sharing stops on hidden/pagehide/unmount/explicit stop; resumption requires explicit action. Sharing notice and privacy wording match this behavior. Pending uploads may finish after capture stops. Saved server evidence remains accessible for retention duration. Successful acknowledgement is checked against the exact core observation identity/coordinates/timestamps, so conflicting replay cannot be falsely reported as saved. Numeric null/string coercion is rejected. Old delayed uploads cannot refresh the interview's location freshness merely by reaching the server now.
+
+## Verification
+API suite exercises >500 screening fixes, equal timestamps, complete pagination, legacy check-ins, empty caught-up response, owner/anonymous access, bad cursors, conflicting retry, invalid values and existing telemetry contracts. Browser suite exercises moving coordinates, explicit pause/resume, screening submission, owner history, CSV download and existing visits. Exact final deployment/build results remain recorded in the main-branch Actions run.
+
+## Boundaries
+All **recorded** retained coordinates can be retrieved; no browser can guarantee observations between fixes or through shutdown, permission loss, poor signal or operating-system suspension. Coordinates are device reports, not independent identity or presence proof. Only authorized office reviewers receive full histories. Location remains separate from expertise scoring. No database migration or property-page redesign is introduced.
+
+Local production-style build, TypeScript, targeted lint and 194 API assertions passed. Local Chromium restoration was blocked by the execution environment (download returned HTML instead of the browser archive). The synthetic browser suite is therefore now a required GitHub Actions gate before migration/deployment; it uses disposable test data, never real invitation records. The production browser gate remains after deployment.
