@@ -120,7 +120,7 @@ See docs/VERIFICATION.md, docs/OPERATIONS.md and docs/GO_LIVE.md.
 
 ### Screening proximity location
 
-Invitation screening begins with explicit consent to a best-effort continuous device-location stream. The notice explains that Private Office wants to determine whether prospects or appointments are already close to the agent, and that independent agents may benefit from proximity matching. High-accuracy browser fixes are batched and persisted to D1 while the screening page/browser/device allow it. Background execution is not guaranteed. Screening location is not part of expertise scoring and is retained for up to 30 days.
+Invitation screening begins with explicit consent to a best-effort continuous device-location stream. The notice explains that Private Office wants to determine whether prospects or appointments are already close to the agent, and that independent agents may benefit from proximity matching. Each high-accuracy browser fix is sent to the Private Office backend immediately after capture and persisted to D1; bounded batches are used only to drain a backlog after temporary delivery failure while the screening page/browser/device allow it. Background execution is not guaranteed. Screening location is not part of expertise scoring and is retained for up to 30 days.
 
 ### First-time agent onboarding
 
