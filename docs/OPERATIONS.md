@@ -38,7 +38,7 @@ The latest adequate persisted fix must remain current for screening mutations; t
 
 Issue credentials from the authenticated office. The agent signs in and completes a saved professional profile and five screening interviews. An office reviewer reads the responses, records evidence-backed competency ratings and a reasoned activation decision. Credentials alone do not permit visit access; missing/pending screening returns `ONBOARDING_REQUIRED`. Existing agents also require review after this migration; there is no automatic grandfathered approval.
 
-Device enrollment happens in the approved visit workspace. The browser creates a non-extractable P-256 key in IndexedDB. Enrollment itself does not request location. Signing in, interviews, public properties and page navigation do not collect location.
+Device enrollment happens in the approved visit workspace. The browser creates a non-extractable P-256 key in IndexedDB. Enrollment itself does not request location. Ordinary sign-in, credentialed first-login interviews, portfolio browsing and page navigation do not collect location. The separate invitation-based screening flow may collect consented best-effort continuous location as described above.
 
 ## Customer visit
 
