@@ -35,8 +35,8 @@ if(['pause','arrive','complete'].includes(b.action)){
     opsLog(verdict.code==='FINAL_SEQUENCE_MISMATCH'?'warn':'info','terminal_refused',{visit_id:v.id,action:b.action,code:verdict.code,...detail});
     // Draining is expected to produce transient TELEMETRY_PENDING refusals; only record the anomalous case in the visit audit trail.
     if(verdict.code==='FINAL_SEQUENCE_MISMATCH')await event(v.id,'terminal_refused',u.userId,JSON.stringify({action:b.action,code:verdict.code,...detail})).run();
-    if(verdict.code==='FINAL_SEQUENCE_MISMATCH')return json({error:'The server holds observations beyond the declared final sequence. Re-declare the final sequence from the device outbox.',code:verdict.code,...detail},409);
-    return json({error:'Telemetry is still pending. Upload the missing observations before closing this tracking epoch.',code:verdict.code,...detail},409);
+    if(verdict.code==='FINAL_SEQUENCE_MISMATCH')return json({error:'This visit has newer saved updates than expected. Keep the page open and try closing the visit again.',code:verdict.code,...detail},409);
+    return json({error:'A few visit updates are still sending. Keep the page open while they finish before closing the visit.',code:verdict.code,...detail},409);
   }
   const maxSequence=seq.max;
   const status=b.action==='pause'?'paused':b.action==='arrive'?'arrived':'completed';
