@@ -19,5 +19,5 @@ export async function screeningLocation(inviteId:string):Promise<ScreeningLocati
 
 export async function requireScreeningLocation(inviteId:string,maxAge=SCREENING_LOCATION_FRESH_MS){
   const state=await screeningLocation(inviteId);
-  if(state.status!=='manual_approved'&&(state.status!=='acquired'||!state.received_at||state.received_at<Date.now()-maxAge))throw new HttpError(428,'Refresh your screening location sharing, or ask the office to approve a manual interview.','SCREENING_LOCATION_REQUIRED');
+  if(state.status!=='manual_approved'&&(state.status!=='acquired'||!state.received_at||state.received_at<Date.now()-maxAge))throw new HttpError(428,'Share your working area again, or request a manual interview from our team.','SCREENING_LOCATION_REQUIRED');
 }
