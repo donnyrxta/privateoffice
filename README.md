@@ -52,11 +52,14 @@ Apply the schema in order:
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0002_production_readiness.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0003_agent_credentials.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0004_agent_presence_gate.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0005_agent_onboarding_screening.sql
     npx wrangler d1 execute private-office-d1 --remote --file drizzle/0006_agent_interviews.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0007_screening_location.sql
+    npx wrangler d1 execute private-office-d1 --remote --file drizzle/0008_screening_location_stream.sql
 
 ### Readiness
 
-GET /api/health returns 200 (ready or degraded) or 503 (not_ready). It checks the DB binding, a live D1 query, all required tables and enriched telemetry columns, schema version 0006_agent_interviews, the Cloudflare Access runtime config (standalone builds), office bootstrap state, and the watchdog/retention scheduler heartbeats. It returns no visit, client or agent data.
+GET /api/health returns 200 (ready or degraded) or 503 (not_ready). It checks the DB binding, a live D1 query, all required tables and enriched telemetry columns, schema version 0008_screening_location_stream, the Cloudflare Access runtime config (standalone builds), office bootstrap state, and the watchdog/retention scheduler heartbeats. It returns no visit, client or agent data.
 
 ### Go-live
 
@@ -115,13 +118,17 @@ The homepage and primary Diamante exterior use local 720/1280/2000 px WebP deriv
 
 See docs/VERIFICATION.md, docs/OPERATIONS.md and docs/GO_LIVE.md.
 
+### Screening proximity location
+
+Invitation screening begins with explicit consent to a best-effort continuous device-location stream. The notice explains that Private Office wants to determine whether prospects or appointments are already close to the agent, and that independent agents may benefit from proximity matching. High-accuracy browser fixes are batched and persisted to D1 while the screening page/browser/device allow it. Background execution is not guaranteed. Screening location is not part of expertise scoring and is retained for up to 30 days.
+
 ### First-time agent onboarding
 
 First-time representatives are invited by the office rather than self-registering. The office creates a time-limited capability link, the candidate completes a professional profile and versioned scenario screening, and the system stores a transparent dimension-by-dimension expertise map. The map never auto-approves or auto-rejects. Only an authenticated office owner can approve a submitted application; approval provisions the existing D1 agent account and returns the generated password once. See `AGENT_ONBOARDING_SYSTEM.md`.
 
 ### Contracted-agent access invariant
 
-Credentials allow onboarding. Saved interview responses inform an office-owner review and explicit human activation; they never auto-approve an agent. Approved agents can accept and start assigned visits. Opening the homepage, portfolio, login or interviews never requests location. The legacy presence endpoint is disabled. Browser location requires explicit visit consent and stops on pause, arrival, completion, backgrounding or leaving the workspace. A return requires explicit start/resume. See `docs/COMPLETION_PLAN.md` for the audited baseline and acceptance criteria.
+Credentials allow onboarding. Saved interview responses inform an office-owner review and explicit human activation; they never auto-approve an agent. Invitation-based pre-credential screening may request best-effort continuous precise location only after the candidate accepts the proximity notice and explicitly starts sharing. Credentialed first-login interviews do not request location. Approved agents can accept and start assigned visits; visit location still requires its own explicit consent/start. The legacy presence endpoint is disabled. See `docs/COMPLETION_PLAN.md` and `docs/PRIVATE_SCREENING_RELEASE_2026-09-28.md` for the current contracts.
 
 
 Integration with concurrent main updates: preserve migration `0005_agent_onboarding_screening.sql` and apply it before `0006_agent_interviews.sql`. Optional invitation-link screening is pre-credential intake; the contracted agent then completes the first-login professional interview for visit activation. Public residences never require GPS.

@@ -20,8 +20,12 @@ export async function GET(){return wrap(async()=>{await owner();
   const invites=await db().prepare(`SELECT i.id,i.intended_email,i.status,i.created_at,i.expires_at,i.opened_at,i.submitted_at,
     (SELECT a.id FROM agent_applications a WHERE a.invite_id=i.id LIMIT 1) AS application_id
     FROM agent_onboarding_invites i ORDER BY i.created_at DESC LIMIT 40`).all<any>();
-  const checks=await db().prepare('SELECT * FROM screening_location_checks ORDER BY received_at DESC LIMIT 300').all();
-  return json({applications:apps.results.map(applicationOut),invites:invites.results,location_checks:checks.results});
+  const [checks,observations]=await Promise.all([
+    db().prepare('SELECT * FROM screening_location_checks ORDER BY received_at DESC LIMIT 300').all<any>(),
+    db().prepare('SELECT id,invite_id,lat,lng,accuracy,recorded_at,received_at,consent_version,session_id,sequence_number FROM screening_location_observations ORDER BY received_at DESC LIMIT 300').all<any>()
+  ]);
+  const locationChecks=[...checks.results,...observations.results.map(row=>({...row,kind:'location'}))].sort((a,b)=>Number(b.received_at)-Number(a.received_at)).slice(0,500);
+  return json({applications:apps.results.map(applicationOut),invites:invites.results,location_checks:locationChecks});
 })}
 
 export async function POST(req:Request){return wrap(async()=>{

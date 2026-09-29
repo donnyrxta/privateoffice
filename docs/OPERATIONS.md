@@ -17,7 +17,7 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 
 1. Create D1 database `private-office-d1`.
 2. Add build variable `CLOUDFLARE_D1_DATABASE_ID` with that database ID. Without it the build fails.
-3. Apply `drizzle/0000_huge_blizzard.sql`, `drizzle/0001_durable_telemetry.sql`, `drizzle/0002_production_readiness.sql`, `drizzle/0003_agent_credentials.sql`, `drizzle/0004_agent_presence_gate.sql`, then `drizzle/0006_agent_interviews.sql` to the remote database.
+3. Apply migrations in order through `drizzle/0008_screening_location_stream.sql` to the remote database. The production workflow reapplies only additive/idempotent screening migrations before deployment.
 4. Run `npm run office:secret` and configure the printed `OFFICE_SETUP_HASH` as a runtime secret.
 5. Configure a hostname/path self-hosted Cloudflare Access app for `/office*` and `/api/office/*` only. Do **not** use Worker-level Access. Copy the live app AUD into `CF_ACCESS_AUD` and set `CF_ACCESS_TEAM_DOMAIN`. See `docs/CLOUDFLARE_ACCESS.md`.
 6. Deploy from `main`.
@@ -26,11 +26,19 @@ The previous configuration with a blank build command and `npx wrangler deploy` 
 
 Full checklist: `docs/GO_LIVE.md`.
 
+## Invitation screening location
+
+Invitation screening starts with an explicit location notice. The stated purpose is to determine whether Private Office already has prospects or appointments near the agent; for independent agents, precise location may help identify proximity-based opportunities. Sharing does not guarantee allocation.
+
+After consent and an explicit start action, the browser uses high-accuracy `watchPosition` and keeps the watcher alive through the screening. Device callbacks are buffered and sent as bounded observation batches to D1 with client UUID, session ID, sequence, coordinates, reported accuracy, optional motion/altitude fields, device timestamp, server receipt time and consent version. Exact retries are idempotent by observation ID / session sequence. The browser cannot guarantee background execution: screen lock, backgrounding, power management or operating-system policy may throttle or suspend callbacks. The page therefore describes this as best-effort continuous capture, never guaranteed background tracking.
+
+The latest adequate persisted fix must remain current for screening mutations; the manual-review alternative remains available. Screening observations are owner-only and follow the 30-day telemetry retention policy.
+
 ## Agent access and activation
 
 Issue credentials from the authenticated office. The agent signs in and completes a saved professional profile and five screening interviews. An office reviewer reads the responses, records evidence-backed competency ratings and a reasoned activation decision. Credentials alone do not permit visit access; missing/pending screening returns `ONBOARDING_REQUIRED`. Existing agents also require review after this migration; there is no automatic grandfathered approval.
 
-Device enrollment happens in the approved visit workspace. The browser creates a non-extractable P-256 key in IndexedDB. Enrollment itself does not request location. Signing in, interviews, public properties and page navigation do not collect location.
+Device enrollment happens in the approved visit workspace. The browser creates a non-extractable P-256 key in IndexedDB. Enrollment itself does not request location. Ordinary sign-in, credentialed first-login interviews, portfolio browsing and page navigation do not collect location. The separate invitation-based screening flow may collect consented best-effort continuous location as described above.
 
 ## Customer visit
 

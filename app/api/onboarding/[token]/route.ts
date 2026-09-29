@@ -37,10 +37,29 @@ export async function GET(_:Request,{params}:{params:Promise<{token:string}>}){r
 
 export async function POST(req:Request,{params}:{params:Promise<{token:string}>}){return wrap(async()=>{
   const {token}=await params,invite=await inviteFor(token),b=await body(req),ip=req.headers.get('cf-connecting-ip')||'unknown';
-  await rate('onboarding:'+invite.id+':'+ip,120,60*60*1000);
+  const locationBatch=b.action==='location_batch';
+  await rate((locationBatch?'onboarding-location:':'onboarding:')+invite.id+':'+ip,locationBatch?900:120,60*60*1000);
   let application=await applicationFor(invite.id);
   if(application&&application.status!=='draft')throw new HttpError(409,'This application has already been submitted for review.');
 
+  if(b.action==='location_batch'){
+    if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Confirm the continuous screening location notice before sharing.');
+    const sessionId=typeof b.session_id==='string'?b.session_id:'',observations=Array.isArray(b.observations)?b.observations:[];
+    if(!/^[a-zA-Z0-9._:-]{8,100}$/.test(sessionId)||observations.length<1||observations.length>25)throw new HttpError(400,'Send a valid screening location session with 1–25 observations.');
+    const now=Date.now(),processed:string[]=[],statements=[];
+    for(const raw of observations){
+      const o=raw as Record<string,unknown>,id=typeof o.id==='string'?o.id:'',sequence=Number(o.sequence_number),lat=Number(o.lat),lng=Number(o.lng),accuracy=Number(o.accuracy),recordedAt=Number(o.recorded_at);
+      if(!/^[a-zA-Z0-9._:-]{8,100}$/.test(id)||!Number.isInteger(sequence)||sequence<0||sequence>10_000_000||![lat,lng,accuracy,recordedAt].every(Number.isFinite)||Math.abs(lat)>90||Math.abs(lng)>180||accuracy<=0||accuracy>10000||recordedAt<now-15*60*1000||recordedAt>now+10000)throw new HttpError(400,'A screening location observation is invalid or too old.');
+      const nullable=(value:unknown,min:number,max:number)=>value===null||value===undefined?null:(typeof value==='number'&&Number.isFinite(value)&&value>=min&&value<=max?value:null);
+      const altitude=nullable(o.altitude,-12000,100000),altitudeAccuracy=nullable(o.altitude_accuracy,0,100000),heading=nullable(o.heading,0,360),speed=nullable(o.speed,0,1000);
+      statements.push(db().prepare(`INSERT OR IGNORE INTO screening_location_observations
+        (id,invite_id,session_id,sequence_number,lat,lng,accuracy,altitude,altitude_accuracy,heading,speed,recorded_at,received_at,consent_version)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id,invite.id,sessionId,sequence,lat,lng,accuracy,altitude,altitudeAccuracy,heading,speed,recordedAt,now,SCREENING_LOCATION_VERSION));
+      processed.push(id);
+    }
+    await db().batch(statements);
+    return json({ok:true,processed_ids:processed,location:await screeningLocation(invite.id)});
+  }
   if(b.action==='location'){
     if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Confirm the screening location notice before sharing.');
     const {lat,lng,accuracy,recorded_at}=b,now=Date.now();
