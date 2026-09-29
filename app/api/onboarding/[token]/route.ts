@@ -40,7 +40,7 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
   const locationBatch=b.action==='location_batch';
   await rate((locationBatch?'onboarding-location:':'onboarding:')+invite.id+':'+ip,locationBatch?900:120,60*60*1000);
   let application=await applicationFor(invite.id);
-  if(application&&application.status!=='draft')throw new HttpError(409,'Your introduction has already been submitted for review.');
+  if(application&&application.status!=='draft')throw new HttpError(409,'Your introduction has already been submitted.');
 
   if(b.action==='location_batch'){
     if(b.consent!==true||b.consent_version!==SCREENING_LOCATION_VERSION)throw new HttpError(400,'Please confirm the location-sharing notice before you begin.');
@@ -64,7 +64,7 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
     // Acknowledgement means the exact observation was persisted, never just ignored.
     for(const o of observations){
       const saved=await db().prepare('SELECT * FROM screening_location_observations WHERE id=?').bind(o.id).first<Record<string,unknown>>();
-      if(!saved||saved.invite_id!==invite.id||saved.session_id!==sessionId||!['sequence_number','lat','lng','accuracy','recorded_at'].every(k=>saved[k]===o[k]))throw new HttpError(409,'This location update conflicts with one already saved. Reload the page and try again.');
+      if(!saved||saved.invite_id!==invite.id||saved.session_id!==sessionId||!['sequence_number','lat','lng','accuracy','recorded_at'].every(k=>saved[k]===o[k]))throw new HttpError(409,'One saved location update does not match this retry. Reload the page and try again.');
     }
     return json({ok:true,processed_ids:processed,location:await screeningLocation(invite.id)});
   }
@@ -139,5 +139,5 @@ export async function POST(req:Request,{params}:{params:Promise<{token:string}>}
     return json({ok:true,application:safeApplication(application)});
   }
 
-  throw new HttpError(400,'Unknown onboarding action.');
+  throw new HttpError(400,'That step is not available. Reload the page and try again.');
 })}

@@ -6,4 +6,4 @@ export async function getOnboarding(agentId:string):Promise<Onboarding>{
  if(!row)return {agent_id:agentId,status:'draft',data:emptyScreening,revision:0,updated_at:null,submitted_at:null,feedback:null,classification:null,reviewed_at:null};
  const {data_json,...rest}=row;const stored=JSON.parse(data_json) as Partial<ScreeningData>;return {...rest,data:{profile:stored.profile??{},answers:stored.answers??{},acknowledged:stored.acknowledged===true}};
 }
-export async function requireApprovedAgent(agentId:string){const record=await getOnboarding(agentId);if(record.status!=='approved')throw new HttpError(403,'Finish your professional introduction and wait for our team to confirm activation before taking visits.','ONBOARDING_REQUIRED')}
+export async function requireApprovedAgent(agentId:string){const record=await getOnboarding(agentId);if(record.status!=='approved')throw new HttpError(403,'Finish your professional introduction and wait for our team to confirm the next step before taking visits.','ONBOARDING_REQUIRED')}
