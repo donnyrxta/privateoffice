@@ -531,6 +531,6 @@ Prefer:
 - clear voluntary actions such as **Share my working area**, **Stop sharing**, and **Request a manual interview**.
 
 Avoid in agent-facing UI unless there is no accurate plain-language alternative:
-- **tracking**, **telemetry**, **coordinate stream**, **device-reported coordinates**, **screening evidence**, **audit trail**, **retained**, **authorized reviewers**, **tracking epoch**, **final sequence**, **expertise score**, and **locked for review**.
+- **tracking**, **telemetry**, **coordinate stream**, **device-reported coordinates**, **screening evidence**, **audit trail**, **retained**, **authorized reviewers**, **tracking epoch**, **final sequence**, **expertise score**, **locked for review**, **proximity check**, **screen before access**, **verification evidence**, **self-reported**, **device fix**, and **pending coordinates**.
 
 Technical vocabulary may remain in database names, protocol fields, internal logs, engineering documentation and diagnostic tooling. Do not weaken consent, retention, access-control or accuracy disclosures merely to make them sound friendlier; translate them into ordinary language instead.
