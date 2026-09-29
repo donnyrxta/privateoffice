@@ -39,7 +39,7 @@ export default function ScreeningCheckIn({
       }
       setError('');
     }catch(e){
-      setError('Some updates haven't reached Private Office yet. Keep this page open and try sending them again. '+(e as Error).message);
+      setError('Some updates have not reached Private Office yet. Keep this page open and try sending them again. '+(e as Error).message);
     }finally{
       flushing.current=false;
     }
@@ -93,7 +93,7 @@ export default function ScreeningCheckIn({
       if(event.code===1){
         stop(true);
         setError('Location sharing is turned off for this site. You can allow it in your browser settings and try again, or request a manual interview.');
-      }else if(event.code===2)setError('We haven't found your location yet. Keep location enabled and move near a window or outdoors; we'll keep trying while the page is open.');
+      }else if(event.code===2)setError('We have not found your location yet. Keep location enabled and move near a window or outdoors; we will keep trying while the page is open.');
       else setError('Finding your location is taking longer than expected. Keep this page open and move near a window or outdoors if you can.');
     },{enableHighAccuracy:true,maximumAge:0,timeout:20000});
     timer.current=setInterval(()=>void flush(),10000);
