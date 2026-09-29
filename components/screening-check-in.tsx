@@ -108,7 +108,7 @@ export default function ScreeningCheckIn({
   }
 
   if(started)return <section className={styles.locationMonitor} aria-live="polite">
-    <div><strong>Working area sharing is on</strong><span>{last?('Latest update ±'+Math.round(last.accuracy)+' m'):'Waiting for the first device fix'}{' · '+pending+' awaiting upload'}</span></div>
+    <div><strong>Working area sharing is on</strong><span>{last?'Latest working-area update received':'Finding your working area'}{pending?(' · '+pending+' still sending'):''}</span></div>
     <p>Location updates are sent while this page stays open. Sharing pauses if you hide or leave the page, and you choose when to resume.</p>
     <button type="button" className={styles.secondary} onClick={()=>stop(true)}>Stop sharing</button>
     {error&&<p role="status" className={styles.error}>{error}</p>}
@@ -121,11 +121,11 @@ export default function ScreeningCheckIn({
     <h2 id="check-in-heading">Share where you are working from.</h2>
     <p><strong>We'd like to see if there are already prospects near you.</strong> For independent agents, sharing your working area can be useful because it helps Private Office match you with nearby prospects, appointments or opportunities that fit the area you serve.</p>
     <p>With your consent, we'll use your location while this page stays open to help suggest nearby matches. Sharing pauses if you hide or close the page, switch apps, or lock your screen.</p>
-    <p>Only our small review team can see this, solely to support nearby matching. It is deleted after 30 days, never affects how we view your experience, and does not guarantee a nearby prospect will be assigned to you.</p>
+    <p>Only the Private Office team handling your introduction can see what you share here. We use it to support nearby matching, delete it after 30 days, and never use it to judge your professional experience. Sharing does not guarantee a nearby prospect will be assigned to you.</p>
     <label className={styles.declaration}><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I agree to share my location during this screening to help match me with nearby opportunities. <a href="/privacy">Privacy notice</a></span></label>
     <button type="button" className={styles.primary} disabled={!consent||busy||pending>0} onClick={start}>{busy?'Finding your area…':'Share my working area'}</button>
     {pending>0&&<p role="status">{pending} updates are still sending. Keep this page open until they finish. <button type="button" className={styles.secondary} onClick={()=>void flush()}>Retry unsent updates</button></p>}
     {error&&<p role="alert" className={styles.error}>{error}</p>}
-    <details className={styles.manual}><summary>Unable or prefer not to share location?</summary><p>Request a manual interview instead. Your saved answers are kept, and we'll confirm with you before you continue online.</p><label>Reason for manual interview<textarea value={reason} minLength={10} maxLength={600} onChange={e=>setReason(e.target.value)}/></label><button type="button" className={styles.secondary} disabled={busy||reason.trim().length<10} onClick={manual}>Request manual review</button>{requested&&<p role="status">Request saved. Contact the office representative who invited you, then reopen this invitation after approval.</p>}</details>
+    <details className={styles.manual}><summary>Unable or prefer not to share location?</summary><p>Request a manual interview instead. Your saved answers are kept, and we'll confirm with you before you continue online.</p><label>Reason for manual interview<textarea value={reason} minLength={10} maxLength={600} onChange={e=>setReason(e.target.value)}/></label><button type="button" className={styles.secondary} disabled={busy||reason.trim().length<10} onClick={manual}>Request a manual interview</button>{requested&&<p role="status">We’ve received your request. We’ll confirm the next step with you before you continue online.</p>}</details>
   </section>;
 }
