@@ -41,7 +41,6 @@ export default function ScreeningCheckIn({
       setError('Location is still being collected on this device, but the latest observations have not reached Private Office yet. '+(e as Error).message);
     }finally{
       flushing.current=false;
-      if(queue.current.length>25)void flush();
     }
   },[token]);
 
