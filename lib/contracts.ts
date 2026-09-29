@@ -1,6 +1,6 @@
 import type {QualityClass} from './telemetry/shared';
 export const CONSENT_VERSION='2026-09-27.v3';
-export const CONSENT_SUMMARY='Your location is shared only after you start an assigned visit and give permission. Private Office keeps the visit location history, while the client’s private arrival link shows only your latest shared position, how recent it is and its reported accuracy. Sharing stops when you pause, arrive, complete, leave this page or put it in the background. Visit location history is deleted after 30 days. If location is unavailable, contact the office to coordinate by phone.';
+export const CONSENT_SUMMARY='Location sharing starts only when you begin an assigned visit and choose to share. Your client’s private arrival link shows only your latest shared arrival location and when it was updated. Private Office keeps the visit history for coordination and removes it after 30 days. Sharing stops when you pause, arrive, complete, leave this page or put it in the background. If location is unavailable, contact the office and we can coordinate the appointment another way.';
 export const RETENTION_MS=30*24*60*60*1000;
 export const SHARE_MS=4*60*60*1000;
 export const FRESH_MS=30*1000;
@@ -16,4 +16,4 @@ export const HEALTH_THRESHOLDS={delayedMs:15_000,staleMs:45_000,interruptedMs:90
 export type TrackingHealthState='idle'|'acquiring'|'healthy'|'delayed'|'degraded'|'stale'|'interrupted'|'window_elapsed'|'completed'|'revoked';
 export type SequenceGap={from:number;to:number};
 export type HealthDetail={state:TrackingHealthState;reasons:string[];age_ms:number|null;last_sequence:number;contiguous_through:number;missing_observations:number;gaps:SequenceGap[];rejected_observations:number;flagged_observations:number};
-export function healthLabel(state:string|undefined){return ({idle:'Idle',acquiring:'Finding location',healthy:'Healthy',delayed:'Delayed',degraded:'Location updates delayed',stale:'Location needs refreshing',interrupted:'Location sharing interrupted',window_elapsed:'Sharing time ended',completed:'Completed',revoked:'Cancelled'} as Record<string,string>)[state||'']||'Unknown'}
+export function healthLabel(state:string|undefined){return ({idle:'Idle',acquiring:'Finding location',healthy:'Healthy',delayed:'Delayed',degraded:'Updates taking longer',stale:'Waiting for a fresh update',interrupted:'Sharing paused unexpectedly',window_elapsed:'Sharing time ended',completed:'Completed',revoked:'Cancelled'} as Record<string,string>)[state||'']||'Unknown'}
