@@ -18,7 +18,9 @@ export default function ScreeningCheckIn({
   const [error,setError]=useState(''),[reason,setReason]=useState(''),[requested,setRequested]=useState(false);
   const [last,setLast]=useState<{accuracy:number;receivedAt:number}|null>(null),[backgrounded,setBackgrounded]=useState(false);
   const watchId=useRef<number|null>(null),sessionId=useRef(''),sequence=useRef(0),queue=useRef<Observation[]>([]),flushing=useRef(false);
-  const timer=useRef<ReturnType<typeof setInterval>|null>(null),acquired=useRef(false);
+  const timer=useRef<ReturnType<typeof setInterval>|null>(null),onReadyRef=useRef(onReady),onStoppedRef=useRef(onStopped);
+  useEffect(()=>{onReadyRef.current=onReady},[onReady]);
+  useEffect(()=>{onStoppedRef.current=onStopped},[onStopped]);
 
   const flush=useCallback(async()=>{
     if(flushing.current||queue.current.length===0)return;
@@ -32,8 +34,7 @@ export default function ScreeningCheckIn({
       queue.current=queue.current.filter(o=>!done.has(o.id));
       if(result.location.received_at&&result.location.accuracy!=null)setLast({accuracy:result.location.accuracy,receivedAt:result.location.received_at});
       if(result.location.status==='acquired'||result.location.status==='manual_approved'){
-        acquired.current=true;
-        onReady(result.location);
+        onReadyRef.current(result.location);
       }
       setError('');
     }catch(e){
@@ -42,14 +43,14 @@ export default function ScreeningCheckIn({
       flushing.current=false;
       if(queue.current.length>25)void flush();
     }
-  },[token,onReady]);
+  },[token]);
 
   const stop=useCallback((notify=true)=>{
     if(watchId.current!==null&&navigator.geolocation){navigator.geolocation.clearWatch(watchId.current);watchId.current=null}
     if(timer.current){clearInterval(timer.current);timer.current=null}
     setStarted(false);setBusy(false);
-    if(notify)onStopped();
-  },[onStopped]);
+    if(notify)onStoppedRef.current();
+  },[]);
 
   useEffect(()=>{
     const online=()=>void flush();
@@ -72,7 +73,7 @@ export default function ScreeningCheckIn({
     setError('');
     if(!window.isSecureContext){setError('Open the HTTPS version of this invitation to share precise location.');return}
     if(!navigator.geolocation){setError('This browser does not support location. Use another browser or request a manual interview below.');return}
-    setBusy(true);setStarted(true);sessionId.current='screen-'+crypto.randomUUID();sequence.current=0;queue.current=[];acquired.current=false;
+    setBusy(true);setStarted(true);sessionId.current='screen-'+crypto.randomUUID();sequence.current=0;queue.current=[];
     watchId.current=navigator.geolocation.watchPosition(position=>{
       const c=position.coords,observation:Observation={
         id:crypto.randomUUID(),sequence_number:sequence.current++,lat:c.latitude,lng:c.longitude,accuracy:c.accuracy,
@@ -82,7 +83,7 @@ export default function ScreeningCheckIn({
       if(queue.current.length>100)queue.current=queue.current.slice(-100);
       setLast({accuracy:c.accuracy,receivedAt:Date.now()});
       setBusy(false);
-      if(!acquired.current||queue.current.length>=10)void flush();
+      if(sequence.current===1||queue.current.length>=10)void flush();
     },event=>{
       setBusy(false);
       if(event.code===1){
@@ -101,7 +102,7 @@ export default function ScreeningCheckIn({
     finally{setBusy(false)}
   }
 
-  if(active&&started)return <section className={styles.locationMonitor} aria-live="polite">
+  if(started)return <section className={styles.locationMonitor} aria-live="polite">
     <div><strong>Precise location sharing is active</strong><span>{last?('Latest device fix ±'+Math.round(last.accuracy)+' m'):'Waiting for the first device fix'}{backgrounded?' · browser is backgrounded':''}</span></div>
     <p>Keep this screening page open for the strongest continuity. We keep requesting and saving device-reported coordinates while your browser and device allow it; backgrounding, screen lock or operating-system restrictions can interrupt updates.</p>
     <button type="button" className={styles.secondary} onClick={()=>stop(true)}>Stop sharing</button>
