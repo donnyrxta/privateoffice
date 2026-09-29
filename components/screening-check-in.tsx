@@ -19,25 +19,26 @@ export default function ScreeningCheckIn({
   const [last,setLast]=useState<{accuracy:number;receivedAt:number}|null>(null),[pending,setPending]=useState(0);
   useEffect(()=>{onPending(pending)},[pending,onPending]);
   const watchId=useRef<number|null>(null),sessionId=useRef(''),sequence=useRef(0),queue=useRef<Observation[]>([]),flushing=useRef(false);
-  const timer=useRef<ReturnType<typeof setInterval>|null>(null),onReadyRef=useRef(onReady),onStoppedRef=useRef(onStopped);
+  const retryTimer=useRef<ReturnType<typeof setInterval>|null>(null),onReadyRef=useRef(onReady),onStoppedRef=useRef(onStopped);
   useEffect(()=>{onReadyRef.current=onReady},[onReady]);
   useEffect(()=>{onStoppedRef.current=onStopped},[onStopped]);
 
   const flush=useCallback(async()=>{
-    if(flushing.current||queue.current.length===0)return;
+    if(flushing.current||queue.current.length===0||!navigator.onLine)return;
     flushing.current=true;
-    const batch=queue.current.slice(0,25);
     try{
-      const result=await post('/api/onboarding/'+token,{
-        action:'location_batch',consent:true,consent_version:CONSENT_VERSION,session_id:sessionId.current,observations:batch
-      }) as {processed_ids:string[];location:LocationState};
-      const done=new Set(result.processed_ids||[]);
-      queue.current=queue.current.filter(o=>!done.has(o.id));setPending(queue.current.length);
-      if(result.location.received_at&&result.location.accuracy!=null)setLast({accuracy:result.location.accuracy,receivedAt:result.location.received_at});
-      if(watchId.current!==null&&(result.location.status==='acquired'||result.location.status==='manual_approved')){
-        onReadyRef.current(result.location);
+      while(queue.current.length&&navigator.onLine){
+        const batch=queue.current.slice(0,25);
+        const result=await post('/api/onboarding/'+token,{
+          action:'location_batch',consent:true,consent_version:CONSENT_VERSION,session_id:sessionId.current,observations:batch
+        }) as {processed_ids:string[];location:LocationState};
+        const done=new Set(result.processed_ids||[]);
+        if(done.size===0)throw new Error('No location updates were acknowledged.');
+        queue.current=queue.current.filter(o=>!done.has(o.id));setPending(queue.current.length);
+        if(result.location.received_at&&result.location.accuracy!=null)setLast({accuracy:result.location.accuracy,receivedAt:result.location.received_at});
+        if(watchId.current!==null&&(result.location.status==='acquired'||result.location.status==='manual_approved'))onReadyRef.current(result.location);
       }
-      setError('');
+      if(queue.current.length===0)setError('');
     }catch(e){
       setError('Some updates have not reached Private Office yet. Keep this page open and try sending them again. '+(e as Error).message);
     }finally{
@@ -47,7 +48,7 @@ export default function ScreeningCheckIn({
 
   const stop=useCallback((notify=true)=>{
     if(watchId.current!==null&&navigator.geolocation){navigator.geolocation.clearWatch(watchId.current);watchId.current=null}
-    if(timer.current){clearInterval(timer.current);timer.current=null}
+    if(retryTimer.current){clearInterval(retryTimer.current);retryTimer.current=null}
     setStarted(false);setBusy(false);
     if(notify)onStoppedRef.current();
   },[]);
@@ -87,7 +88,7 @@ export default function ScreeningCheckIn({
       if(queue.current.length>=100){stop(true);setError('Sharing paused: 100 updates are still waiting to send. Try sending the unsent updates before resuming. Nothing has been lost.');void flush();return}
       setLast({accuracy:c.accuracy,receivedAt:Date.now()});
       setBusy(false);
-      if(sequence.current===1||queue.current.length>=10)void flush();
+      void flush();
     },event=>{
       setBusy(false);
       if(event.code===1){
@@ -96,7 +97,7 @@ export default function ScreeningCheckIn({
       }else if(event.code===2)setError('We have not found your location yet. Keep location enabled and move near a window or outdoors; we will keep trying while the page is open.');
       else setError('Finding your location is taking longer than expected. Keep this page open and move near a window or outdoors if you can.');
     },{enableHighAccuracy:true,maximumAge:0,timeout:20000});
-    timer.current=setInterval(()=>void flush(),10000);
+    retryTimer.current=setInterval(()=>{if(queue.current.length)void flush()},5000);
   }
 
   async function manual(){
